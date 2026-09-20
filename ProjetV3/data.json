@@ -1,0 +1,20 @@
+{
+  "athlete": {
+    "nom": "Dupont",
+    "prenom": "Lucas",
+    "discipline": "Escalade",
+    "age": 17,
+    "poids_kg": 64
+  },
+  "points": [
+    {"vitesse": 1.06, "force": 627.2},
+    {"vitesse": 0.94, "force": 676.2},
+    {"vitesse": 0.71, "force": 725.2},
+    {"vitesse": 0.41, "force": 774.2},
+    {"vitesse": 0.38, "force": 803.6}
+  ],
+  "interpretation": {
+    "profil": "Profil fortement orienté Vitesse : Excellente vitesse contractile favorisant les mouvements dynamiques, jetés et blocs à forte vitesse d'exécution.",
+    "recommandation": "L'athlète présente un déficit relatif en Force Max. Recommandation : Intégrer des cycles de travail en tractions très lourdes (3 à 5 reps à >85% 1RM) et blocages isométriques pour équilibrer le profil vers la force sans altérer sa vitesse naturelle."
+  }
+}

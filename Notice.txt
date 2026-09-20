@@ -1,0 +1,29 @@
+-------------------------------------
+- Utiliser un environnement virtuel -
+-------------------------------------
+
+Créer un environnement virtuel (nommé env par exemple) dans ton dossier de travail
+----------------------------------------------------------------------------------
+python3 -m venv env
+
+Activer l'environnement virtuel
+--------------------------------
+source env/bin/activate
+((Le mot (env) va apparaître au début de ta ligne de commande).)
+
+Installer WeasyPrint et tes paquets sans erreur :
+--------------------------------------------------
+pip install weasyprint numpy
+
+Remarque : Pour quitter l'environnement plus tard, tape simplement deactivate. Pour réinstaller ou relancer ton script plus tard, réactive-le avec source env/bin/activate.
+
+
+1. Installation de Jinja2
+--------------------------
+Installe Jinja2 (le moteur de templates le plus utilisé en Python) dans ton environnement :
+-------------------------------------------------------------------------------------------
+pip install jinja2
+
+Executer script
+----------------
+python3 generer_pdf.py

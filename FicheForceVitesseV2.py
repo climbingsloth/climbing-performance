@@ -1,0 +1,369 @@
+import os
+from weasyprint import HTML
+
+# Code HTML / CSS / SVG complet
+html_content = """<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fiche Profil Force-Vitesse Complétée</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm 15mm;
+            background-color: #f8fafc;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            font-size: 11pt;
+            background-color: #f8fafc;
+        }
+
+        .header {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 18pt;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        .header p {
+            margin: 4px 0 0 0;
+            font-size: 9.5pt;
+            color: #94a3b8;
+        }
+
+        .section-title {
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            border-left: 4px solid #2563eb;
+            padding-left: 8px;
+        }
+
+        /* Identity Block Table */
+        .info-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 6px;
+            margin-bottom: 10px;
+            margin-left: -6px;
+            margin-right: -6px;
+        }
+
+        .info-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 5px 10px;
+            vertical-align: top;
+        }
+
+        .info-label {
+            font-size: 7.5pt;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .info-value {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .data-table th {
+            background-color: #1e293b;
+            color: #ffffff;
+            font-size: 8pt;
+            font-weight: 600;
+            text-align: center;
+            padding: 6px 4px;
+            border-right: 1px solid #334155;
+        }
+
+        .data-table th:last-child {
+            border-right: none;
+        }
+
+        .data-table td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #f1f5f9;
+            text-align: center;
+            font-size: 9pt;
+        }
+
+        .data-table td:last-child {
+            border-right: none;
+        }
+
+        .data-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        /* Chart Section */
+        .chart-container {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        /* Calculated Results Section */
+        .results-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 6px;
+            margin-bottom: 12px;
+            margin-left: -6px;
+            margin-right: -6px;
+        }
+
+        .results-card {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 10px;
+            vertical-align: top;
+        }
+
+        .results-card-highlight {
+            background-color: #eff6ff;
+            border: 1px solid #93c5fd;
+        }
+
+        .results-label {
+            font-size: 7.5pt;
+            font-weight: 700;
+            color: #1e40af;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .results-subtext {
+            font-size: 6.5pt;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+
+        .results-value {
+            font-size: 12pt;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .notes-section {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 8.5pt;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Fiche Évaluation Force - Vitesse</h1>
+        <p>Test de profilage neuro-musculaire et puissance maximale — Rapport Complété</p>
+    </div>
+
+    <div class="section-title">Informations Athlète</div>
+    <table class="info-table">
+        <tr>
+            <td class="info-card" style="width: 25%;">
+                <div class="info-label">Discipline / Âge</div>
+                <div class="info-value">Escalade (17 ans)</div>
+            </td>
+            <td class="info-card" style="width: 25%;">
+                <div class="info-label">Masse Corporelle</div>
+                <div class="info-value">64 kg</div>
+            </td>
+            <td class="info-card" style="width: 25%;">
+                <div class="info-label">Pente (a)</div>
+                <div class="info-value">-230,97 N/(m/s)</div>
+            </td>
+            <td class="info-card" style="width: 25%;">
+                <div class="info-label">Qualité (R²)</div>
+                <div class="info-value">0,974 (Très fort)</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Mesures & Données Récoltées (5 Points)</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 20%;">Mesure</th>
+                <th style="width: 40%;">Force Associée (N)</th>
+                <th style="width: 40%;">Vitesse (m/s)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="font-weight:bold;">Point 1</td>
+                <td>627,2 N</td>
+                <td>1,06 m/s</td>
+            </tr>
+            <tr>
+                <td style="font-weight:bold;">Point 2</td>
+                <td>676,2 N</td>
+                <td>0,94 m/s</td>
+            </tr>
+            <tr>
+                <td style="font-weight:bold;">Point 3</td>
+                <td>725,2 N</td>
+                <td>0,71 m/s</td>
+            </tr>
+            <tr>
+                <td style="font-weight:bold;">Point 4</td>
+                <td>774,2 N</td>
+                <td>0,41 m/s</td>
+            </tr>
+            <tr>
+                <td style="font-weight:bold;">Point 5</td>
+                <td>803,6 N</td>
+                <td>0,38 m/s</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-title">Graphique Profil Force - Vitesse (Papier Millimétré)</div>
+    <div class="chart-container">
+        <svg width="650" height="260" viewBox="0 0 650 260" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="millimeter" width="5" height="5" patternUnits="userSpaceOnUse">
+                    <path d="M 5 0 L 0 0 0 5" fill="none" stroke="#fca5a5" stroke-width="0.3" stroke-opacity="0.5"/>
+                </pattern>
+                <pattern id="five-millimeter" width="25" height="25" patternUnits="userSpaceOnUse">
+                    <rect width="25" height="25" fill="url(#millimeter)"/>
+                    <path d="M 25 0 L 0 0 0 25" fill="none" stroke="#f87171" stroke-width="0.6" stroke-opacity="0.7"/>
+                </pattern>
+                <pattern id="graph-paper" width="50" height="50" patternUnits="userSpaceOnUse">
+                    <rect width="50" height="50" fill="url(#five-millimeter)"/>
+                    <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#ef4444" stroke-width="1.1" stroke-opacity="0.85"/>
+                </pattern>
+            </defs>
+            
+            <!-- Plot Area -->
+            <rect x="60" y="20" width="540" height="200" fill="url(#graph-paper)" stroke="#dc2626" stroke-width="1.2"/>
+
+            <!-- Main Axes -->
+            <line x1="60" y1="220" x2="608" y2="220" stroke="#0f172a" stroke-width="2.5"/>
+            <line x1="60" y1="10" x2="60" y2="220" stroke="#0f172a" stroke-width="2.5"/>
+            
+            <!-- Arrows -->
+            <polygon points="608,216 616,220 608,224" fill="#0f172a"/>
+            <polygon points="56,10 60,2 64,10" fill="#0f172a"/>
+
+            <!-- Axis Labels & Graduations -->
+            <text x="-120" y="22" transform="rotate(-90)" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold" fill="#0f172a" text-anchor="middle">
+                FORCE (N)
+            </text>
+            <text x="330" y="250" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold" fill="#0f172a" text-anchor="middle">
+                VITESSE (m/s)
+            </text>
+
+            <text x="48" y="232" font-family="Helvetica, Arial, sans-serif" font-size="8" fill="#0f172a">0</text>
+            <text x="180" y="232" font-family="Helvetica, Arial, sans-serif" font-size="8" fill="#0f172a">1.0</text>
+            <text x="300" y="232" font-family="Helvetica, Arial, sans-serif" font-size="8" fill="#0f172a">2.0</text>
+            <text x="420" y="232" font-family="Helvetica, Arial, sans-serif" font-size="8" fill="#0f172a">3.0</text>
+            <text x="518" y="232" font-family="Helvetica, Arial, sans-serif" font-size="8" fill="#2563eb" font-weight="bold">V0 = 3.82</text>
+
+            <text x="25" y="47" font-family="Helvetica, Arial, sans-serif" font-size="8" fill="#2563eb" font-weight="bold">F0 = 883</text>
+            <text x="35" y="120" font-family="Helvetica, Arial, sans-serif" font-size="8" fill="#0f172a">500</text>
+
+            <!-- Linear Regression Line -->
+            <line x1="60" y1="43.4" x2="518.7" y2="220" stroke="#2563eb" stroke-width="2.5"/>
+
+            <!-- Intercept Points (F0 and V0) -->
+            <circle cx="60" cy="43.4" r="5" fill="#dc2626"/>
+            <circle cx="518.7" cy="220" r="5" fill="#dc2626"/>
+
+            <!-- Data Points -->
+            <circle cx="187.2" cy="94.56" r="4" fill="#0f172a"/>
+            <circle cx="172.8" cy="84.76" r="4" fill="#0f172a"/>
+            <circle cx="145.2" cy="74.96" r="4" fill="#0f172a"/>
+            <circle cx="109.2" cy="65.16" r="4" fill="#0f172a"/>
+            <circle cx="105.6" cy="59.28" r="4" fill="#0f172a"/>
+
+            <!-- Legend Box -->
+            <rect x="400" y="28" width="185" height="42" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+            <line x1="410" y1="42" x2="435" y2="42" stroke="#2563eb" stroke-width="2.5"/>
+            <circle cx="422.5" cy="42" r="3.5" fill="#0f172a"/>
+            <text x="445" y="45" font-family="Helvetica, Arial, sans-serif" font-size="8" font-weight="bold" fill="#334155">Régression F-V (R²=0.974)</text>
+            <circle cx="422.5" cy="58" r="3.5" fill="#dc2626"/>
+            <text x="445" y="61" font-family="Helvetica, Arial, sans-serif" font-size="8" font-weight="bold" fill="#dc2626">Extrapolations (F0 & V0)</text>
+        </svg>
+    </div>
+
+    <div class="section-title">Paramètres Extrapolés & Puissance Maximale</div>
+    <table class="results-table">
+        <tr>
+            <td class="results-card" style="width: 30%;">
+                <div class="results-label">F0 (Force Max Extrapolée)</div>
+                <div class="results-subtext">Intersection axe Y (0 m/s)</div>
+                <div class="results-value">882,96 N <span style="font-size:8pt; font-weight:normal; color:#64748b;">(13,8 N/kg)</span></div>
+            </td>
+            <td class="results-card" style="width: 30%;">
+                <div class="results-label">V0 (Vitesse Max Extrapolée)</div>
+                <div class="results-subtext">Intersection axe X (0 N)</div>
+                <div class="results-value">3,82 m/s</div>
+            </td>
+            <td class="results-card results-card-highlight" style="width: 40%;">
+                <div class="results-label" style="color: #1d4ed8;">Pmax (Puissance Max Extrapolée)</div>
+                <div class="results-subtext" style="color: #2563eb;">Formule : (F0 × V0) / 4</div>
+                <div class="results-value" style="color: #1e40af;">843,84 W <span style="font-size:8pt; font-weight:normal; color:#2563eb;">(13,2 W/kg)</span></div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="notes-section">
+        <div style="font-weight:700; color:#0f172a; margin-bottom: 3px; font-size: 8pt; text-transform:uppercase;">Interprétation Grimpeur (17 ans, 64 kg)</div>
+        <b>Profil fortement orienté Vitesse :</b> Excellente vitesse contractile ($V_0 = 3{,}82\text{ m/s}$) favorisant les mouvements dynamiques, jetés et blocs à forte vitesse d'exécution.<br>
+        <b>Axe de travail prioritaire :</b> L'athlète présente un déficit relatif en Force Max ($F_0 = 13{,}8\text{ N/kg}$). Recommandation : Intégrer des cycles de travail en tractions très lourdes ($3\text{--}5\text{ reps}$ à $>85\%\text{ 1RM}$) et blocages isométriques pour équilibrer le profil vers la force sans altérer sa vitesse naturelle.
+    </div>
+
+</body>
+</html>
+"""
+
+# Commande WeasyPrint pour générer le PDF
+HTML(string=html_content).write_pdf("mon_rapport_force_vitesse.pdf")
+print("PDF 'mon_rapport_force_vitesse.pdf' généré avec succès !")
