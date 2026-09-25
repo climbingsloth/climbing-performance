@@ -1,0 +1,12 @@
+# Exclure des dossiers complets (pense bien au / à la fin)
+.venv/
+__pycache__/
+.pytest_cache/
+.idea/
+.vscode/
+
+# Exclure des fichiers spécifiques
+.env
+secret_config.json
+*.pyc
+*.log
