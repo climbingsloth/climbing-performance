@@ -46,15 +46,32 @@
             color: #94a3b8;
         }
 
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
         .section-title {
             font-size: 10.5pt;
             font-weight: 700;
             color: #0f172a;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 6px;
             border-left: 4px solid #2563eb;
             padding-left: 8px;
+            margin: 0;
+        }
+
+        .r2-badge {
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: #1e293b;
+            background-color: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            padding: 2px 8px;
+            border-radius: 4px;
         }
 
         .info-table, .results-table {
@@ -144,38 +161,39 @@
 
     <div class="header">
         <h1>Fiche Évaluation Force - Vitesse & Puissance</h1>
-        <p>Test de profilage neuro-musculaire — Rapport Automatisé</p>
+        <p>Test du {{ date_test }} — Rapport Automatisé</p>
     </div>
 
-    <div class="section-title">Informations Athlète</div>
+    <div class="section-title" style="margin-bottom:6px;">Informations Athlète</div>
     <table class="info-table">
         <tr>
-            <td class="card" style="width:25%;">
+            <td class="card" style="width:33%;">
                 <div class="label">Athlète</div>
                 <div class="value">{{ athlete.prenom }} {{ athlete.nom }}</div>
             </td>
-            <td class="card" style="width:25%;">
-                <div class="label">Discipline / Âge</div>
-                <div class="value">{{ athlete.discipline }} ({{ athlete.age }} ans)</div>
+            <td class="card" style="width:33%;">
+                <div class="label">Né(e) le / Âge au test</div>
+                <div class="value">{{ athlete.date_naissance }} <span style="font-size:9pt; font-weight:normal; color:#64748b;">({{ athlete.age_au_test }} ans)</span></div>
             </td>
-            <td class="card" style="width:25%;">
-                <div class="label">Masse Corporelle</div>
-                <div class="value">{{ athlete.poids_kg }} kg</div>
-            </td>
-            <td class="card" style="width:25%;">
-                <div class="label">Qualité (R²)</div>
-                <div class="value">{{ "%.3f"|format(r2) }}</div>
+            <td class="card" style="width:34%;">
+                <div class="label">Discipline / Masse</div>
+                <div class="value">{{ athlete.discipline }} ({{ athlete.poids_kg }} kg)</div>
             </td>
         </tr>
     </table>
 
-    <div class="section-title">Mesures Récoltées ({{ points|length }} Points)</div>
+    <div class="section-header">
+        <div class="section-title">Mesures Récoltées ({{ points|length }} Points)</div>
+        <div class="r2-badge">R² du modèle = {{ "%.3f"|format(r2) }}</div>
+    </div>
+    
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width:20%;">Mesure</th>
-                <th style="width:40%;">Force (N)</th>
-                <th style="width:40%;">Vitesse (m/s)</th>
+                <th style="width:15%;">Mesure</th>
+                <th style="width:28%;">Force (N)</th>
+                <th style="width:28%;">Vitesse (m/s)</th>
+                <th style="width:29%;">Puissance (W)</th>
             </tr>
         </thead>
         <tbody>
@@ -184,12 +202,13 @@
                 <td style="font-weight:bold;">Point {{ loop.index }}</td>
                 <td>{{ p.force }} N</td>
                 <td>{{ p.vitesse }} m/s</td>
+                <td>{{ p.puissance }} W</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <div class="section-title">Graphique Profil Force - Vitesse & Parabole de Puissance</div>
+    <div class="section-title" style="margin-bottom:6px;">Graphique Profil Force - Vitesse & Parabole de Puissance</div>
     <div class="chart-container">
         <svg width="650" height="260" viewBox="0 0 650 260" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -226,7 +245,7 @@
             <text x="420" y="232" font-size="8" fill="#0f172a">3.0</text>
             <text x="518" y="232" font-size="8" fill="#2563eb" font-weight="bold">V0={{ "%.2f"|format(v0) }}</text>
 
-            <!-- Graduations Y Droit (Puissance en Watts) -->
+            <!-- Graduations Y Droit (Puissance) -->
             <text x="605" y="123" font-size="8" fill="#16a34a" font-weight="bold">500 W</text>
             <text x="605" y="23" font-size="8" fill="#16a34a" font-weight="bold">1000 W</text>
 
@@ -263,27 +282,31 @@
         </svg>
     </div>
 
-    <div class="section-title">Paramètres Extrapolés & Puissance Maximale</div>
+    <div class="section-title" style="margin-bottom:6px;">Paramètres Extrapolés & Estimations</div>
     <table class="results-table">
         <tr>
-            <td class="card" style="width:30%;">
-                <div class="label">F0 (Force Max Extrapolée)</div>
+            <td class="card" style="width:25%;">
+                <div class="label">F0 (Force Max)</div>
                 <div class="value">{{ "%.2f"|format(f0) }} N <span style="font-size:8pt; font-weight:normal; color:#64748b;">({{ "%.1f"|format(f0 / athlete.poids_kg) }} N/kg)</span></div>
             </td>
-            <td class="card" style="width:30%;">
-                <div class="label">V0 (Vitesse Max Extrapolée)</div>
+            <td class="card" style="width:25%;">
+                <div class="label">V0 (Vitesse Max)</div>
                 <div class="value">{{ "%.2f"|format(v0) }} m/s</div>
             </td>
-            <td class="card card-highlight" style="width:40%;">
-                <div class="label" style="color:#15803d;">Pmax (Puissance Max Extrapolée)</div>
+            <td class="card card-highlight" style="width:25%;">
+                <div class="label" style="color:#15803d;">Pmax (Puissance Max)</div>
                 <div class="value" style="color:#166534;">{{ "%.2f"|format(pmax) }} W <span style="font-size:8pt; font-weight:normal; color:#15803d;">({{ "%.1f"|format(pmax / athlete.poids_kg) }} W/kg)</span></div>
+            </td>
+            <td class="card" style="width:25%;">
+                <div class="label">1RM Estimée (MVT {{ mvt }} m/s)</div>
+                <div class="value">{{ "%.1f"|format(m_1rm_totale) }} kg <span style="font-size:8pt; font-weight:normal; color:#2563eb;">(+{{ "%.1f"|format(m_1rm_lest) }} kg)</span></div>
             </td>
         </tr>
     </table>
 
     <div class="notes-section">
         <div style="font-weight:700; color:#0f172a; margin-bottom: 3px; font-size: 8pt; text-transform:uppercase;">
-            Interprétation {{ athlete.discipline }} ({{ athlete.age }} ans, {{ athlete.poids_kg }} kg)
+            Interprétation {{ athlete.discipline }} ({{ athlete.age_au_test }} ans, {{ athlete.poids_kg }} kg)
         </div>
         <b>Profil :</b> {{ interpretation.profil }}<br>
         <b>Axe de travail prioritaire :</b> {{ interpretation.recommandation }}

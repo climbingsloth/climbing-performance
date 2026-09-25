@@ -1,32 +1,17 @@
 {
   "athlete": {
-    "nom": "Dupont",
-    "prenom": "Lucas",
+    "nom": "Pourraz",
+    "prenom": "Sven",
     "discipline": "Escalade",
-    "poids_kg": 64,
-    "date_test": "2026-09-25"
+    "age": 17,
+    "poids_kg": 64
   },
   "points": [
-    {
-      "vitesse": 1.06,
-      "force": 627.2
-    },
-    {
-      "puissance": 635.6,
-      "force": 676.2
-    },
-    {
-      "vitesse": 0.71,
-      "force": 725.2
-    },
-    {
-      "puissance": 317.4,
-      "force": 774.2
-    },
-    {
-      "vitesse": 0.38,
-      "force": 803.6
-    }
+    {"vitesse": 1.06, "force": 627.2},
+    {"vitesse": 0.94, "force": 676.2},
+    {"vitesse": 0.71, "force": 725.2},
+    {"vitesse": 0.41, "force": 774.2},
+    {"vitesse": 0.38, "force": 803.6}
   ],
   "interpretation": {
     "profil": "Profil fortement orienté Vitesse : Excellente vitesse contractile favorisant les mouvements dynamiques, jetés et blocs à forte vitesse d'exécution.",

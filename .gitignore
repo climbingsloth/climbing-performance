@@ -11,3 +11,4 @@ ProjetV3/env
 secret_config.json
 *.pyc
 *.log
+*.pdf

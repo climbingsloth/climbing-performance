@@ -27,3 +27,7 @@ pip install jinja2
 Executer script
 ----------------
 python3 generer_pdf.py
+
+
+
+

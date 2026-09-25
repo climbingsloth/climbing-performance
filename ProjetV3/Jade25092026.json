@@ -1,0 +1,19 @@
+{
+  "date_test": "2026-09-24",
+  "athlete": {
+    "nom": "Castagna",
+    "prenom": "Jade",
+    "date_naissance":"2012-02-17",
+    "discipline": "Escalade",
+    "age": 14,
+    "poids_kg": 53.2    
+  },
+  "points": [
+    {"vitesse": 0.5, "force": 521.9},
+    {"vitesse": 0.33, "force": 570.9}
+  ],
+  "interpretation": {
+    "profil": "TODO",
+    "recommandation": "TODO"
+  }
+}
