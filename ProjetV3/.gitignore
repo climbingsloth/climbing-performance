@@ -10,3 +10,4 @@ __pycache__/
 secret_config.json
 *.pyc
 *.log
+*.pdf
