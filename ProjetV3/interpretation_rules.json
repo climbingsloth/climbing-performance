@@ -1,0 +1,94 @@
+{
+  "profils": [
+    {
+      "pente_min": 7.5,
+      "pente_max": 99.0,
+      "profil": "Orienté Force (Déficit de Vitesse)",
+      "orientation": "DÉFICIT DE VITESSE (Pente Raide)",
+      "diagnostic": "L'athlète génère une force maximale élevée à faible vitesse, mais perd rapidement son efficacité dès que le mouvement exige de l'explosivité.",
+      "recommandation": "Axer l'entraînement sur la vitesse d'exécution, la pliométrie et les mouvements explosifs à faible charge.",
+      "exercices": [
+        "Tractions explosives délestées ou poids de corps (intention de vitesse maximale).",
+        "Pliométrie du haut du corps, campus board et jetés dynamiques à 50-70% 1RM.",
+        "Transfert sur blocs dynamiques et coordination à vitesse élevée."
+      ],
+      "methode": "3 à 5 séries de 3 répétitions avec intention de vitesse maximale (V > 1.2 m/s), recup 3 min."
+    },
+    {
+      "pente_min": 5.5,
+      "pente_max": 7.5,
+      "profil": "Profil Équilibré (Spécifique Escalade)",
+      "orientation": "PROFIL ÉQUILIBRÉ",
+      "diagnostic": "L'athlète présente une répartition harmonieuse entre Force et Vitesse. La priorité est de déplacer la courbe F-V vers le haut (augmenter la Puissance Max).",
+      "recommandation": "Consolider la puissance maximale (Pmax) et développer la vitesse de montée en force (RFD) sur doigts.",
+      "exercices": [
+        "Travail combiné lourd-léger (Contrastes de charge / Complex Training).",
+        "Suspensions lourd/vitesse et travail d'explosivité sur poutre.",
+        "Blocs de puissance spécifique à haute intensité."
+      ],
+      "methode": "3 à 4 séries mixtes combinant tractions lourdes (>80% 1RM) et séries explosives au poids de corps."
+    },
+    {
+      "pente_min": 0.0,
+      "pente_max": 5.5,
+      "profil": "Orienté Vitesse (Déficit de Force)",
+      "orientation": "DÉFICIT DE FORCE (Pente Plate)",
+      "diagnostic": "L'athlète possède une excellente vitesse de déplacement à vide mais manque de force maximale pour verrouiller les mouvements sur petites prises ou sous fortes charges.",
+      "recommandation": "Privilégier le travail de force maximale en traction lourde et le renforcement isométrique lourd à la poutre.",
+      "exercices": [
+        "Tractions très lourdes sur barre (85-95% 1RM).",
+        "Suspensions isométriques lourdes à la poutre sur règles de 10-12 mm.",
+        "Mouvements de bloc en blocage lourd et compression."
+      ],
+      "methode": "4 à 6 séries de 2 à 4 répétitions lests lourds avec 3 à 5 min de repos complet."
+    }
+  ],
+  "disciplines": [
+    {
+      "ratio_1rm_min": 1.80,
+      "v0_min": 1.50,
+      "label": "Profil Type Bloqueur Élite / International",
+      "norme_info": "Norme Élite : 1RM > 1.8x poids de corps | V0 > 1.50 m/s"
+    },
+    {
+      "ratio_1rm_min": 1.60,
+      "v0_min": 0.0,
+      "label": "Profil Type Grimpeur de Difficulté / Falaise",
+      "norme_info": "Norme Élite : 1RM > 1.6x poids de corps"
+    },
+    {
+      "ratio_1rm_min": 0.0,
+      "v0_min": 1.75,
+      "label": "Profil Type Grimpeur de Vitesse",
+      "norme_info": "Norme Vitesse : V0 > 1.75 m/s"
+    },
+    {
+      "ratio_1rm_min": 0.0,
+      "v0_min": 0.0,
+      "label": "Profil Développement / Régional",
+      "norme_info": "Objectif de progression : Augmenter 1RM/kg et Pmax"
+    }
+  ],
+  "cotations": [
+    {
+      "pmax_rel_min": 17.5,
+      "cotation_bloc": "8A / 8B",
+      "cotation_falaise": "8c / 9a"
+    },
+    {
+      "pmax_rel_min": 14.5,
+      "cotation_bloc": "7B+ / 7C+",
+      "cotation_falaise": "8a+ / 8b+"
+    },
+    {
+      "pmax_rel_min": 11.5,
+      "cotation_bloc": "7A / 7B",
+      "cotation_falaise": "7c+ / 8a"
+    },
+    {
+      "pmax_rel_min": 0.0,
+      "cotation_bloc": "< 7A",
+      "cotation_falaise": "< 7c+"
+    }
+  ]
+}
