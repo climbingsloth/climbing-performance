@@ -1,0 +1,23 @@
+{
+  "date_test": "2026-10-21",
+  "athlete": {
+    "nom": "Guyot",
+    "prenom": "Jérôme",
+    "date_naissance":"1983-02-10",
+    "discipline": "Escalade",
+    "poids_kg": 69    
+  },
+  "points": [
+    {"vitesse": 0.99, "force": 676.89},
+    {"vitesse": 0.72, "force": 774.99},
+    {"vitesse": 0.60, "force": 824.04},
+    {"vitesse": 0.47, "force": 873.09},
+    {"vitesse": 0.38, "force": 971.19},
+    {"vitesse": 0.33, "force": 1020.24},
+    {"vitesse": 0.25, "force": 1044.76}
+  ],
+  "interpretation": {
+    "profil": "TODO",
+    "recommandation": "TODO"
+  }
+}
