@@ -235,6 +235,12 @@ export default function AthleteDetailClient({
                 Détail de la planification →
               </Link>
             )}
+            <Link
+              href="/planning"
+              className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
+            >
+              + Gérer les planifications
+            </Link>
           </div>
 
           <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
@@ -461,7 +467,16 @@ export default function AthleteDetailClient({
       )}
 
       {tab === "mensurations" && (
-        <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <div className="space-y-3">
+          <div className="flex justify-end">
+            <Link
+              href="/mensurations"
+              className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
+            >
+              + Saisir une mensuration
+            </Link>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-zinc-200 bg-zinc-50 text-zinc-500">
               <tr>
@@ -496,11 +511,20 @@ export default function AthleteDetailClient({
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       {tab === "tests" && (
         <div className="space-y-4">
+          <div className="flex justify-end">
+            <Link
+              href="/tests"
+              className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
+            >
+              + Saisir un test
+            </Link>
+          </div>
           {testDefinitions.map((t) => {
             const rs = athleteTests
               .filter((r) => r.testId === t.id)
@@ -538,7 +562,16 @@ export default function AthleteDetailClient({
       )}
 
       {tab === "resultats" && (
-        <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <div className="space-y-3">
+          <div className="flex justify-end">
+            <Link
+              href="/resultats"
+              className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
+            >
+              + Saisir un résultat
+            </Link>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-zinc-200 bg-zinc-50 text-zinc-500">
               <tr>
@@ -568,11 +601,21 @@ export default function AthleteDetailClient({
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       {tab === "bien-etre" && (
-        <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <div className="space-y-3">
+          <div className="flex justify-end">
+            <Link
+              href="/bien-etre"
+              className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
+            >
+              + Saisir une journée
+            </Link>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-zinc-200 bg-zinc-50 text-zinc-500">
               <tr>
@@ -604,6 +647,7 @@ export default function AthleteDetailClient({
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

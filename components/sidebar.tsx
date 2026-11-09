@@ -7,11 +7,6 @@ import { useState } from "react";
 const links = [
   { href: "/", label: "Tableau de bord", icon: "📊" },
   { href: "/athletes", label: "Athlètes", icon: "👥" },
-  { href: "/mensurations", label: "Mensurations", icon: "📏" },
-  { href: "/bien-etre", label: "Bien-être", icon: "😴" },
-  { href: "/resultats", label: "Résultats", icon: "🏆" },
-  { href: "/tests", label: "Tests", icon: "🧪" },
-  { href: "/planning", label: "Planning", icon: "📅" },
 ];
 
 function MenuItems({ onNavigate }: { onNavigate?: () => void }) {
