@@ -1,0 +1,53 @@
+import type { Athlete, Measurement } from "./types";
+
+export const demoAthletes: Athlete[] = [
+  {
+    id: "ath-1",
+    firstName: "Lucas",
+    lastName: "Martin",
+    birthDate: "2012-03-15",
+    sex: "M",
+    level: "Compétition jeunes",
+    createdAt: "2025-09-01",
+  },
+  {
+    id: "ath-2",
+    firstName: "Emma",
+    lastName: "Dubois",
+    birthDate: "2011-07-22",
+    sex: "F",
+    level: "Compétition jeunes",
+    createdAt: "2025-09-01",
+  },
+  {
+    id: "ath-3",
+    firstName: "Nathan",
+    lastName: "Petit",
+    birthDate: "2013-11-02",
+    sex: "M",
+    level: "Loisir encadré",
+    createdAt: "2025-09-05",
+  },
+  {
+    id: "ath-4",
+    firstName: "Chloé",
+    lastName: "Roux",
+    birthDate: "2010-01-30",
+    sex: "F",
+    level: "Compétition adultes",
+    createdAt: "2025-09-10",
+  },
+];
+
+export const demoMeasurements: Measurement[] = [
+  { id: "m-1", athleteId: "ath-1", date: "2025-09-10", heightCm: 152.5, weightKg: 42.0, sittingHeightCm: 79.0 },
+  { id: "m-2", athleteId: "ath-1", date: "2026-01-15", heightCm: 155.2, weightKg: 43.5, sittingHeightCm: 80.1 },
+  { id: "m-3", athleteId: "ath-1", date: "2026-05-20", heightCm: 157.8, weightKg: 45.2, sittingHeightCm: 81.0 },
+  { id: "m-4", athleteId: "ath-2", date: "2025-09-12", heightCm: 158.0, weightKg: 46.5, sittingHeightCm: 83.5 },
+  { id: "m-5", athleteId: "ath-2", date: "2026-02-01", heightCm: 160.5, weightKg: 48.0, sittingHeightCm: 84.2 },
+  { id: "m-6", athleteId: "ath-2", date: "2026-06-10", heightCm: 161.8, weightKg: 48.8, sittingHeightCm: 84.6 },
+  { id: "m-7", athleteId: "ath-3", date: "2025-10-05", heightCm: 146.0, weightKg: 38.2, sittingHeightCm: 77.0 },
+  { id: "m-8", athleteId: "ath-3", date: "2026-03-01", heightCm: 148.5, weightKg: 39.0, sittingHeightCm: 78.0 },
+  { id: "m-9", athleteId: "ath-4", date: "2025-09-20", heightCm: 168.0, weightKg: 58.0, sittingHeightCm: 88.5 },
+  { id: "m-10", athleteId: "ath-4", date: "2026-04-01", heightCm: 168.6, weightKg: 58.4, sittingHeightCm: 88.7 },
+];
