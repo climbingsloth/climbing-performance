@@ -40,6 +40,10 @@ function buildEventsByDate(
   return map;
 }
 
+function isoOf(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 function monthGrid(year: number, month: number): string[][] {
   const first = new Date(year, month, 1);
   const startOffset = (first.getDay() + 6) % 7;
@@ -47,12 +51,28 @@ function monthGrid(year: number, month: number): string[][] {
   const cells: string[] = [];
   for (let i = 0; i < startOffset; i++) cells.push("");
   for (let d = 1; d <= daysInMonth; d++) {
-    cells.push(`${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+    cells.push(isoOf(new Date(year, month, d)));
   }
   while (cells.length % 7 !== 0) cells.push("");
   const weeks: string[][] = [];
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
   return weeks;
+}
+
+function weekGrid(weekStartIso: string): string[][] {
+  const monday = new Date(weekStartIso);
+  const cells: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+    cells.push(isoOf(d));
+  }
+  return [cells];
+}
+
+function weekStartOf(dateIso: string): string {
+  const d = new Date(dateIso);
+  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+  return isoOf(monday);
 }
 
 export default function PlanningPage() {
@@ -69,6 +89,7 @@ export default function PlanningPage() {
   const [planningId, setPlanningId] = useState("");
   const todayIso = new Date().toISOString().slice(0, 10);
   const [viewDate, setViewDate] = useState(todayIso);
+  const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [objTitle, setObjTitle] = useState("");
   const [objDate, setObjDate] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -93,9 +114,10 @@ export default function PlanningPage() {
       : athletePlannings[0]?.id ?? "";
 
   const grid = useMemo(() => {
+    if (viewMode === "week") return weekGrid(weekStartOf(viewDate));
     const v = new Date(viewDate);
     return monthGrid(v.getFullYear(), v.getMonth());
-  }, [viewDate]);
+  }, [viewDate, viewMode]);
 
   const eventsByDate = useMemo(
     () =>
@@ -109,10 +131,15 @@ export default function PlanningPage() {
     [trainingSessions, seasonResults, athletePlannings, selectedAthleteId, selectedPlanningId],
   );
 
-  function shiftMonth(delta: number) {
+  function shiftView(delta: number) {
     const v = new Date(viewDate);
+    if (viewMode === "week") {
+      const d = new Date(v.getFullYear(), v.getMonth(), v.getDate() + delta * 7);
+      setViewDate(isoOf(d));
+      return;
+    }
     const d = new Date(v.getFullYear(), v.getMonth() + delta, 1);
-    setViewDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`);
+    setViewDate(isoOf(d));
   }
 
   function onAddPlanning(e: FormEvent) {
@@ -164,6 +191,17 @@ export default function PlanningPage() {
     month: "long",
     year: "numeric",
   });
+  const weekStart = weekStartOf(viewDate);
+  const weekEndDate = new Date(weekStart);
+  weekEndDate.setDate(weekEndDate.getDate() + 6);
+  const weekRange = `${new Date(weekStart).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+  })} → ${weekEndDate.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })}`;
 
   return (
     <div className="space-y-8">
@@ -321,14 +359,40 @@ export default function PlanningPage() {
       </div>
 
       <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <button
-            onClick={() => shiftMonth(-1)}
+            onClick={() => shiftView(-1)}
             className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
           >
-            ← Mois précédent
+            ← {viewMode === "week" ? "Semaine précédente" : "Mois précédent"}
           </button>
-          <h2 className="text-lg font-semibold capitalize">{monthName}</h2>
+          <div className="flex items-center gap-3">
+            <div className="flex rounded-md border border-zinc-300">
+              <button
+                onClick={() => setViewMode("month")}
+                className={`rounded-l-md px-3 py-1.5 text-sm ${
+                  viewMode === "month"
+                    ? "bg-zinc-900 text-white"
+                    : "hover:bg-zinc-100"
+                }`}
+              >
+                Mois
+              </button>
+              <button
+                onClick={() => setViewMode("week")}
+                className={`rounded-r-md px-3 py-1.5 text-sm ${
+                  viewMode === "week"
+                    ? "bg-zinc-900 text-white"
+                    : "hover:bg-zinc-100"
+                }`}
+              >
+                Semaine
+              </button>
+            </div>
+            <h2 className="text-lg font-semibold capitalize">
+              {viewMode === "week" ? weekRange : monthName}
+            </h2>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => setViewDate(todayIso)}
@@ -337,20 +401,26 @@ export default function PlanningPage() {
               Aujourd&apos;hui
             </button>
             <button
-              onClick={() => shiftMonth(1)}
+              onClick={() => shiftView(1)}
               className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
             >
-              Mois suivant →
+              {viewMode === "week" ? "Semaine suivante →" : "Mois suivant →"}
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-zinc-200 bg-zinc-200">
-          {weekDays.map((d) => (
+        <div
+          className={`grid ${
+            viewMode === "week" ? "grid-cols-1 sm:grid-cols-7" : "grid-cols-7"
+          } gap-px overflow-hidden rounded-lg border border-zinc-200 bg-zinc-200`}
+        >
+          {grid[0].map((cell, dayIdx) => (
             <div
-              key={d}
+              key={dayIdx}
               className="bg-zinc-50 px-2 py-2 text-center text-xs font-semibold text-zinc-500"
             >
-              {d}
+              {viewMode === "week" && cell
+                ? `${weekDays[dayIdx]} ${new Date(cell).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`
+                : weekDays[dayIdx]}
             </div>
           ))}
           {grid.flat().map((cell, i) => {
@@ -359,14 +429,16 @@ export default function PlanningPage() {
             return (
               <div
                 key={i}
-                className={`min-h-24 bg-white p-1.5 ${
-                  cell ? "" : "bg-zinc-50"
-                } ${isToday ? "ring-2 ring-inset ring-zinc-900" : ""}`}
+                className={`bg-white p-1.5 ${
+                  viewMode === "week" ? "min-h-40" : "min-h-24"
+                } ${cell ? "" : "bg-zinc-50"} ${
+                  isToday ? "ring-2 ring-inset ring-zinc-900" : ""
+                }`}
               >
                 {cell && (
                   <p
                     className={`text-xs font-semibold ${
-                      isToday ? "text-zinc-900" : "text-zinc-400"
+                      isToday || viewMode === "week" ? "text-zinc-900" : "text-zinc-400"
                     }`}
                   >
                     {Number(cell.slice(8, 10))}
