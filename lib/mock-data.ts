@@ -1,4 +1,4 @@
-import type { Athlete, Measurement } from "./types";
+import type { Athlete, Measurement, WellnessEntry } from "./types";
 
 export const demoAthletes: Athlete[] = [
   {
@@ -50,4 +50,12 @@ export const demoMeasurements: Measurement[] = [
   { id: "m-8", athleteId: "ath-3", date: "2026-03-01", heightCm: 148.5, weightKg: 39.0, sittingHeightCm: 78.0 },
   { id: "m-9", athleteId: "ath-4", date: "2025-09-20", heightCm: 168.0, weightKg: 58.0, sittingHeightCm: 88.5 },
   { id: "m-10", athleteId: "ath-4", date: "2026-04-01", heightCm: 168.6, weightKg: 58.4, sittingHeightCm: 88.7 },
+];
+
+export const demoWellness: WellnessEntry[] = [
+  { id: "w-1", athleteId: "ath-1", date: "2026-11-05", sleep: 8, stress: 3, motivation: 8, fatigue: 4, soreness: 2 },
+  { id: "w-2", athleteId: "ath-1", date: "2026-11-06", sleep: 7, stress: 4, motivation: 7, fatigue: 5, soreness: 3 },
+  { id: "w-3", athleteId: "ath-1", date: "2026-11-07", sleep: 9, stress: 2, motivation: 9, fatigue: 3, soreness: 1 },
+  { id: "w-4", athleteId: "ath-2", date: "2026-11-06", sleep: 6, stress: 5, motivation: 6, fatigue: 6, soreness: 4 },
+  { id: "w-5", athleteId: "ath-2", date: "2026-11-07", sleep: 8, stress: 3, motivation: 8, fatigue: 4, soreness: 2 },
 ];
