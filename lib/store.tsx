@@ -11,6 +11,7 @@ import {
 import type {
   Athlete,
   Measurement,
+  SeasonResult,
   TestDefinition,
   TestResult,
   WellnessEntry,
@@ -18,12 +19,13 @@ import type {
 import {
   demoAthletes,
   demoMeasurements,
+  demoSeasonResults,
   demoTestDefinitions,
   demoTestResults,
   demoWellness,
 } from "./mock-data";
 
-const STORAGE_KEY = "climbing-performance-v3";
+const STORAGE_KEY = "climbing-performance-v4";
 
 interface StoreState {
   athletes: Athlete[];
@@ -31,6 +33,7 @@ interface StoreState {
   wellness: WellnessEntry[];
   testDefinitions: TestDefinition[];
   testResults: TestResult[];
+  seasonResults: SeasonResult[];
 }
 
 interface StoreContextValue extends StoreState {
@@ -39,6 +42,7 @@ interface StoreContextValue extends StoreState {
   addWellness: (entry: Omit<WellnessEntry, "id">) => void;
   addTestDefinition: (test: Omit<TestDefinition, "id">) => void;
   addTestResult: (result: Omit<TestResult, "id">) => void;
+  addSeasonResult: (result: Omit<SeasonResult, "id">) => void;
   removeAthlete: (id: string) => void;
 }
 
@@ -51,6 +55,7 @@ function demoState(): StoreState {
     wellness: demoWellness,
     testDefinitions: demoTestDefinitions,
     testResults: demoTestResults,
+    seasonResults: demoSeasonResults,
   };
 }
 
@@ -68,6 +73,9 @@ function readStored(): StoreState {
           ? parsed.testDefinitions
           : [],
         testResults: Array.isArray(parsed.testResults) ? parsed.testResults : [],
+        seasonResults: Array.isArray(parsed.seasonResults)
+          ? parsed.seasonResults
+          : [],
       };
     }
   } catch {
@@ -159,6 +167,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const addSeasonResult = useCallback((result: Omit<SeasonResult, "id">) => {
+    const current = getSnapshot();
+    persist({
+      ...current,
+      seasonResults: [
+        ...current.seasonResults,
+        { ...result, id: `s-${Date.now()}` },
+      ],
+    });
+  }, []);
+
   const removeAthlete = useCallback((id: string) => {
     const current = getSnapshot();
     persist({
@@ -167,6 +186,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       measurements: current.measurements.filter((m) => m.athleteId !== id),
       wellness: current.wellness.filter((w) => w.athleteId !== id),
       testResults: current.testResults.filter((r) => r.athleteId !== id),
+      seasonResults: current.seasonResults.filter((r) => r.athleteId !== id),
     });
   }, []);
 
@@ -178,6 +198,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addWellness,
       addTestDefinition,
       addTestResult,
+      addSeasonResult,
       removeAthlete,
     }),
     [
@@ -187,6 +208,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addWellness,
       addTestDefinition,
       addTestResult,
+      addSeasonResult,
       removeAthlete,
     ],
   );

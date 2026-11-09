@@ -1,6 +1,7 @@
 import type {
   Athlete,
   Measurement,
+  SeasonResult,
   TestDefinition,
   TestResult,
   WellnessEntry,
@@ -79,4 +80,43 @@ export const demoTestResults: TestResult[] = [
   { id: "r-4", athleteId: "ath-1", testId: "t-finger", date: "2026-11-06", value: 14 },
   { id: "r-5", athleteId: "ath-2", testId: "t-grip", date: "2026-09-18", value: 35 },
   { id: "r-6", athleteId: "ath-2", testId: "t-grip", date: "2026-11-05", value: 36 },
+];
+
+export const demoSeasonResults: SeasonResult[] = [
+  {
+    id: "s-1",
+    athleteId: "ath-1",
+    season: "2025-2026",
+    competition: "Championnat régional jeunes",
+    date: "2026-03-14",
+    result: "3e place, voie 7a+",
+    notes: "Bonne gestion, à travailler sur la lecture de voie.",
+  },
+  {
+    id: "s-2",
+    athleteId: "ath-1",
+    season: "2025-2026",
+    competition: "Coupe de France jeunes",
+    date: "2026-05-02",
+    result: "12e place",
+    notes: "",
+  },
+  {
+    id: "s-3",
+    athleteId: "ath-2",
+    season: "2025-2026",
+    competition: "Championnat régional jeunes",
+    date: "2026-03-14",
+    result: "1re place, voie 6c",
+    notes: "Excellente saison, pic de forme atteint.",
+  },
+  {
+    id: "s-4",
+    athleteId: "ath-2",
+    season: "2024-2025",
+    competition: "Championnat régional jeunes",
+    date: "2025-04-20",
+    result: "4e place",
+    notes: "Progression nette sur la puissance.",
+  },
 ];
