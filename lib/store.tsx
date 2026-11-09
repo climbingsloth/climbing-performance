@@ -14,6 +14,7 @@ import type {
   SeasonResult,
   TestDefinition,
   TestResult,
+  TrainingSession,
   WellnessEntry,
 } from "./types";
 import {
@@ -22,10 +23,11 @@ import {
   demoSeasonResults,
   demoTestDefinitions,
   demoTestResults,
+  demoTrainingSessions,
   demoWellness,
 } from "./mock-data";
 
-const STORAGE_KEY = "climbing-performance-v4";
+const STORAGE_KEY = "climbing-performance-v5";
 
 interface StoreState {
   athletes: Athlete[];
@@ -34,6 +36,7 @@ interface StoreState {
   testDefinitions: TestDefinition[];
   testResults: TestResult[];
   seasonResults: SeasonResult[];
+  trainingSessions: TrainingSession[];
 }
 
 interface StoreContextValue extends StoreState {
@@ -43,6 +46,7 @@ interface StoreContextValue extends StoreState {
   addTestDefinition: (test: Omit<TestDefinition, "id">) => void;
   addTestResult: (result: Omit<TestResult, "id">) => void;
   addSeasonResult: (result: Omit<SeasonResult, "id">) => void;
+  addTrainingSession: (session: Omit<TrainingSession, "id">) => void;
   removeAthlete: (id: string) => void;
 }
 
@@ -56,6 +60,7 @@ function demoState(): StoreState {
     testDefinitions: demoTestDefinitions,
     testResults: demoTestResults,
     seasonResults: demoSeasonResults,
+    trainingSessions: demoTrainingSessions,
   };
 }
 
@@ -75,6 +80,9 @@ function readStored(): StoreState {
         testResults: Array.isArray(parsed.testResults) ? parsed.testResults : [],
         seasonResults: Array.isArray(parsed.seasonResults)
           ? parsed.seasonResults
+          : [],
+        trainingSessions: Array.isArray(parsed.trainingSessions)
+          ? parsed.trainingSessions
           : [],
       };
     }
@@ -178,6 +186,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const addTrainingSession = useCallback(
+    (session: Omit<TrainingSession, "id">) => {
+      const current = getSnapshot();
+      persist({
+        ...current,
+        trainingSessions: [
+          ...current.trainingSessions,
+          { ...session, id: `ts-${Date.now()}` },
+        ],
+      });
+    },
+    [],
+  );
+
   const removeAthlete = useCallback((id: string) => {
     const current = getSnapshot();
     persist({
@@ -187,6 +209,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       wellness: current.wellness.filter((w) => w.athleteId !== id),
       testResults: current.testResults.filter((r) => r.athleteId !== id),
       seasonResults: current.seasonResults.filter((r) => r.athleteId !== id),
+      trainingSessions: current.trainingSessions.filter(
+        (s) => s.athleteId !== id,
+      ),
     });
   }, []);
 
@@ -199,6 +224,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addTestDefinition,
       addTestResult,
       addSeasonResult,
+      addTrainingSession,
       removeAthlete,
     }),
     [
@@ -209,6 +235,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addTestDefinition,
       addTestResult,
       addSeasonResult,
+      addTrainingSession,
       removeAthlete,
     ],
   );
