@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useStore } from "@/lib/store";
 import { ageLabel } from "@/lib/growth";
@@ -127,7 +128,12 @@ export default function AthletesClient({ today }: { today: string }) {
             {athletes.map((a) => (
               <tr key={a.id} className="border-b border-zinc-100 last:border-0">
                 <td className="px-4 py-3 font-medium">
-                  {a.firstName} {a.lastName}
+                  <Link
+                    href={`/athletes/${a.id}`}
+                    className="text-brand underline"
+                  >
+                    {a.firstName} {a.lastName}
+                  </Link>
                 </td>
                 <td className="px-4 py-3">{ageLabel(a.birthDate, today)}</td>
                 <td className="px-4 py-3">{a.sex === "M" ? "Garçon" : "Fille"}</td>
