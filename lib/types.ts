@@ -57,8 +57,19 @@ export interface SeasonResult {
 export interface TrainingSession {
   id: string;
   athleteId: string;
+  planningId: string | null;
   date: string;
   title: string;
   durationMin: number;
   notes: string;
+}
+
+export interface Planning {
+  id: string;
+  athleteId: string;
+  objective: string;
+  objectiveDate: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
 }

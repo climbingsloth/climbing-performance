@@ -3,113 +3,177 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useStore } from "@/lib/store";
 import { formatDateFr } from "@/lib/growth";
-import type { TrainingSession } from "@/lib/types";
+import type { Planning, SeasonResult, TrainingSession } from "@/lib/types";
 
-function isoWeek(dateIso: string): { year: number; week: number } {
-  const d = new Date(dateIso);
-  const target = new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
-  );
-  const dayNum = (target.getUTCDay() + 6) % 7;
-  target.setUTCDate(target.getUTCDate() - dayNum + 3);
-  const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
-  const firstDayNum = (firstThursday.getUTCDay() + 6) % 7;
-  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNum + 3);
-  const week =
-    1 +
-    Math.round(
-      (target.getTime() - firstThursday.getTime()) / (7 * 24 * 3600 * 1000),
-    );
-  return { year: target.getUTCFullYear(), week };
+const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
+interface DayEvents {
+  sessions: TrainingSession[];
+  comps: SeasonResult[];
+  objectives: Planning[];
 }
 
-function monthLabel(dateIso: string): string {
-  return new Date(dateIso).toLocaleDateString("fr-FR", {
-    month: "long",
-    year: "numeric",
-  });
+function buildEventsByDate(
+  trainingSessions: TrainingSession[],
+  seasonResults: SeasonResult[],
+  plannings: Planning[],
+  athleteId: string,
+  planningId: string,
+): Map<string, DayEvents> {
+  const map = new Map<string, DayEvents>();
+  const get = (date: string): DayEvents => {
+    const list = map.get(date) ?? { sessions: [], comps: [], objectives: [] };
+    map.set(date, list);
+    return list;
+  };
+  for (const s of trainingSessions) {
+    if (s.athleteId !== athleteId) continue;
+    if (planningId && s.planningId && s.planningId !== planningId) continue;
+    get(s.date).sessions.push(s);
+  }
+  for (const c of seasonResults) {
+    if (c.athleteId === athleteId) get(c.date).comps.push(c);
+  }
+  for (const p of plannings) {
+    get(p.objectiveDate).objectives.push(p);
+  }
+  return map;
 }
 
-function weekLabel(dateIso: string): string {
-  const { year, week } = isoWeek(dateIso);
-  return `Semaine ${week} — ${year}`;
+function monthGrid(year: number, month: number): string[][] {
+  const first = new Date(year, month, 1);
+  const startOffset = (first.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: string[] = [];
+  for (let i = 0; i < startOffset; i++) cells.push("");
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push(`${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+  }
+  while (cells.length % 7 !== 0) cells.push("");
+  const weeks: string[][] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
 }
 
 export default function PlanningPage() {
-  const { athletes, trainingSessions, addTrainingSession } = useStore();
+  const {
+    athletes,
+    plannings,
+    trainingSessions,
+    seasonResults,
+    addPlanning,
+    addTrainingSession,
+  } = useStore();
+
   const [athleteId, setAthleteId] = useState("");
-  const [date, setDate] = useState("");
-  const [title, setTitle] = useState("");
-  const [duration, setDuration] = useState("");
-  const [notes, setNotes] = useState("");
+  const [planningId, setPlanningId] = useState("");
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const [viewDate, setViewDate] = useState(todayIso);
+  const [objTitle, setObjTitle] = useState("");
+  const [objDate, setObjDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [sDate, setSDate] = useState("");
+  const [sTitle, setSTitle] = useState("");
+  const [sDuration, setSDuration] = useState("");
+  const [sNotes, setSNotes] = useState("");
   const [error, setError] = useState("");
 
   const selectedAthleteId = athleteId || athletes[0]?.id || "";
-
-  const sessions = useMemo(
+  const athletePlannings = useMemo(
     () =>
-      trainingSessions
-        .filter((s) => s.athleteId === selectedAthleteId)
-        .sort((a, b) => a.date.localeCompare(b.date)),
-    [trainingSessions, selectedAthleteId],
+      plannings
+        .filter((p) => p.athleteId === selectedAthleteId)
+        .sort((a, b) => b.startDate.localeCompare(a.startDate)),
+    [plannings, selectedAthleteId],
+  );
+  const selectedPlanningId =
+    planningId && athletePlannings.some((p) => p.id === planningId)
+      ? planningId
+      : athletePlannings[0]?.id ?? "";
+
+  const view = new Date(viewDate);
+  const viewYear = view.getFullYear();
+  const viewMonth = view.getMonth();
+  const grid = useMemo(
+    () => monthGrid(viewYear, viewMonth),
+    [viewYear, viewMonth],
   );
 
-  const groupedByWeek = useMemo(() => {
-    const map = new Map<string, TrainingSession[]>();
-    for (const s of sessions) {
-      const key = weekLabel(s.date);
-      const list = map.get(key) ?? [];
-      list.push(s);
-      map.set(key, list);
-    }
-    return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]));
-  }, [sessions]);
+  const eventsByDate = useMemo(
+    () =>
+      buildEventsByDate(
+        trainingSessions,
+        seasonResults,
+        athletePlannings,
+        selectedAthleteId,
+        selectedPlanningId,
+      ),
+    [trainingSessions, seasonResults, athletePlannings, selectedAthleteId, selectedPlanningId],
+  );
 
-  const stats = useMemo(() => {
-    const now = new Date();
-    const todayIso = now.toISOString().slice(0, 10);
-    const { year, week } = isoWeek(todayIso);
-    const currentMonth = todayIso.slice(0, 7);
-    const weekSessions = sessions.filter((s) => {
-      const w = isoWeek(s.date);
-      return w.year === year && w.week === week;
-    });
-    const monthSessions = sessions.filter((s) => s.date.slice(0, 7) === currentMonth);
-    return {
-      weekCount: weekSessions.length,
-      weekMinutes: weekSessions.reduce((sum, s) => sum + s.durationMin, 0),
-      monthCount: monthSessions.length,
-      monthMinutes: monthSessions.reduce((sum, s) => sum + s.durationMin, 0),
-    };
-  }, [sessions]);
+  function shiftMonth(delta: number) {
+    const d = new Date(viewYear, viewMonth + delta, 1);
+    setViewDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`);
+  }
 
-  function onSubmit(e: FormEvent) {
+  function onAddPlanning(e: FormEvent) {
     e.preventDefault();
-    const d = parseInt(duration, 10);
-    if (!selectedAthleteId || !date || !title.trim() || Number.isNaN(d) || d <= 0) {
+    if (!selectedAthleteId || !objTitle.trim() || !objDate || !startDate || !endDate) {
+      setError("Objectif, date d'objectif, début et fin sont obligatoires.");
+      return;
+    }
+    if (endDate < startDate || objDate < startDate || objDate > endDate) {
+      setError("Les dates doivent être cohérentes : début ≤ objectif ≤ fin.");
+      return;
+    }
+    addPlanning({
+      athleteId: selectedAthleteId,
+      objective: objTitle.trim(),
+      objectiveDate: objDate,
+      startDate,
+      endDate,
+    });
+    setObjTitle("");
+    setObjDate("");
+    setStartDate("");
+    setEndDate("");
+    setError("");
+  }
+
+  function onAddSession(e: FormEvent) {
+    e.preventDefault();
+    const d = parseInt(sDuration, 10);
+    if (!selectedAthleteId || !sDate || !sTitle.trim() || Number.isNaN(d) || d <= 0) {
       setError("Date, titre et durée (en minutes, > 0) sont obligatoires.");
       return;
     }
     addTrainingSession({
       athleteId: selectedAthleteId,
-      date,
-      title: title.trim(),
+      planningId: selectedPlanningId || null,
+      date: sDate,
+      title: sTitle.trim(),
       durationMin: d,
-      notes: notes.trim(),
+      notes: sNotes.trim(),
     });
-    setTitle("");
-    setDuration("");
-    setNotes("");
+    setSTitle("");
+    setSDuration("");
+    setSNotes("");
     setError("");
   }
+
+  const monthName = view.toLocaleDateString("fr-FR", {
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold">Planning d&apos;entraînement</h1>
         <p className="mt-1 text-zinc-600">
-          Planifiez les séances de chaque athlète, regroupées par semaine et
-          par mois.
+          Chaque planification est liée à un objectif et à un athlète, avec des
+          dates configurables. Vue calendrier des séances et compétitions.
         </p>
       </div>
 
@@ -118,7 +182,10 @@ export default function PlanningPage() {
           <label className="mb-1 block text-sm font-medium">Athlète</label>
           <select
             value={selectedAthleteId}
-            onChange={(e) => setAthleteId(e.target.value)}
+            onChange={(e) => {
+              setAthleteId(e.target.value);
+              setPlanningId("");
+            }}
             className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm"
           >
             {athletes.length === 0 && <option value="">Aucun athlète</option>}
@@ -129,121 +196,231 @@ export default function PlanningPage() {
             ))}
           </select>
         </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Planification</label>
+          <select
+            value={selectedPlanningId}
+            onChange={(e) => setPlanningId(e.target.value)}
+            className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm"
+          >
+            {athletePlannings.length === 0 && (
+              <option value="">Aucune planification</option>
+            )}
+            {athletePlannings.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.objective} ({formatDateFr(p.startDate)} →{" "}
+                {formatDateFr(p.endDate)})
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <p className="text-sm text-zinc-500">Séances cette semaine</p>
-          <p className="text-xl font-bold">{stats.weekCount}</p>
-        </div>
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <p className="text-sm text-zinc-500">Temps cette semaine</p>
-          <p className="text-xl font-bold">{stats.weekMinutes} min</p>
-        </div>
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <p className="text-sm text-zinc-500">Séances ce mois-ci</p>
-          <p className="text-xl font-bold">{stats.monthCount}</p>
-        </div>
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <p className="text-sm text-zinc-500">Temps ce mois-ci</p>
-          <p className="text-xl font-bold">{stats.monthMinutes} min</p>
-        </div>
-      </div>
-
-      <form
-        onSubmit={onSubmit}
-        className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5"
-      >
-        <div>
-          <label className="mb-1 block text-sm font-medium">Date</label>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <form
+          onSubmit={onAddPlanning}
+          className="space-y-3 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm"
+        >
+          <h2 className="font-semibold">Nouvelle planification</h2>
           <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            value={objTitle}
+            onChange={(e) => setObjTitle(e.target.value)}
+            placeholder="Objectif (ex. Coupe régionale U17)"
             className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
           />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Séance</label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Bloc — force doigts"
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Durée (min)</label>
-          <input
-            type="number"
-            min={1}
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            placeholder="90"
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Notes</label>
-          <input
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Détail de la séance..."
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-          />
-        </div>
-        <div className="flex items-end">
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Date de l&apos;objectif
+            </label>
+            <input
+              type="date"
+              value={objDate}
+              onChange={(e) => setObjDate(e.target.value)}
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Début</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Fin</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
           <button
             type="submit"
-            className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
           >
-            Ajouter
+            Créer la planification
           </button>
-        </div>
-        {error && (
-          <p className="text-sm text-red-600 sm:col-span-2 lg:col-span-5">{error}</p>
-        )}
-      </form>
+        </form>
 
-      <div className="space-y-4">
-        {groupedByWeek.map(([week, weekSessions]) => (
-          <div
-            key={week}
-            className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm"
-          >
-            <h2 className="border-b border-zinc-200 px-4 py-3 font-semibold">
-              {week}{" "}
-              <span className="text-sm font-normal capitalize text-zinc-500">
-                ({monthLabel(weekSessions[0].date)})
-              </span>
-            </h2>
-            <table className="w-full text-left text-sm">
-              <thead className="bg-zinc-50 text-zinc-500">
-                <tr>
-                  <th className="px-4 py-2 font-medium">Date</th>
-                  <th className="px-4 py-2 font-medium">Séance</th>
-                  <th className="px-4 py-2 font-medium">Durée</th>
-                  <th className="px-4 py-2 font-medium">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {weekSessions.map((s) => (
-                  <tr key={s.id} className="border-t border-zinc-100">
-                    <td className="px-4 py-2">{formatDateFr(s.date)}</td>
-                    <td className="px-4 py-2 font-medium">{s.title}</td>
-                    <td className="px-4 py-2">{s.durationMin} min</td>
-                    <td className="px-4 py-2 text-zinc-600">{s.notes || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <form
+          onSubmit={onAddSession}
+          className="space-y-3 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm lg:col-span-2"
+        >
+          <h2 className="font-semibold">Nouvelle séance</h2>
+          <div className="grid gap-3 sm:grid-cols-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Date</label>
+              <input
+                type="date"
+                value={sDate}
+                onChange={(e) => setSDate(e.target.value)}
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Séance</label>
+              <input
+                value={sTitle}
+                onChange={(e) => setSTitle(e.target.value)}
+                placeholder="Bloc — force doigts"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Durée (min)</label>
+              <input
+                type="number"
+                min={1}
+                value={sDuration}
+                onChange={(e) => setSDuration(e.target.value)}
+                placeholder="90"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Notes</label>
+              <input
+                value={sNotes}
+                onChange={(e) => setSNotes(e.target.value)}
+                placeholder="Détail..."
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
           </div>
-        ))}
-        {groupedByWeek.length === 0 && (
-          <p className="rounded-xl border border-zinc-200 bg-white p-6 text-center text-zinc-500 shadow-sm">
-            Aucune séance planifiée pour cet athlète.
-          </p>
-        )}
+          <button
+            type="submit"
+            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+          >
+            Ajouter la séance
+          </button>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+        </form>
+      </div>
+
+      <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <button
+            onClick={() => shiftMonth(-1)}
+            className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+          >
+            ← Mois précédent
+          </button>
+          <h2 className="text-lg font-semibold capitalize">{monthName}</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewDate(todayIso)}
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+            >
+              Aujourd&apos;hui
+            </button>
+            <button
+              onClick={() => shiftMonth(1)}
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+            >
+              Mois suivant →
+            </button>
+          </div>
+        </div>
+        <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-zinc-200 bg-zinc-200">
+          {weekDays.map((d) => (
+            <div
+              key={d}
+              className="bg-zinc-50 px-2 py-2 text-center text-xs font-semibold text-zinc-500"
+            >
+              {d}
+            </div>
+          ))}
+          {grid.flat().map((cell, i) => {
+            const events = cell ? eventsByDate.get(cell) : undefined;
+            const isToday = cell === todayIso;
+            return (
+              <div
+                key={i}
+                className={`min-h-24 bg-white p-1.5 ${
+                  cell ? "" : "bg-zinc-50"
+                } ${isToday ? "ring-2 ring-inset ring-zinc-900" : ""}`}
+              >
+                {cell && (
+                  <p
+                    className={`text-xs font-semibold ${
+                      isToday ? "text-zinc-900" : "text-zinc-400"
+                    }`}
+                  >
+                    {Number(cell.slice(8, 10))}
+                  </p>
+                )}
+                <div className="mt-1 space-y-1">
+                  {events?.objectives.map((p) => (
+                    <p
+                      key={p.id}
+                      className="truncate rounded bg-purple-100 px-1 py-0.5 text-[11px] font-medium text-purple-900"
+                      title={`Objectif : ${p.objective}`}
+                    >
+                      🎯 {p.objective}
+                    </p>
+                  ))}
+                  {events?.comps.map((c) => (
+                    <p
+                      key={c.id}
+                      className="truncate rounded bg-red-100 px-1 py-0.5 text-[11px] font-medium text-red-900"
+                      title={c.competition}
+                    >
+                      🏆 {c.competition}
+                    </p>
+                  ))}
+                  {events?.sessions.map((s) => (
+                    <p
+                      key={s.id}
+                      className="truncate rounded bg-zinc-900 px-1 py-0.5 text-[11px] text-white"
+                      title={`${s.title} — ${s.durationMin} min`}
+                    >
+                      {s.title} ({s.durationMin} min)
+                    </p>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-600">
+          <span>
+            <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-zinc-900 align-middle" />
+            Séance d&apos;entraînement
+          </span>
+          <span>
+            <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-red-100 align-middle" />
+            Compétition
+          </span>
+          <span>
+            <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-purple-100 align-middle" />
+            Date d&apos;objectif
+          </span>
+        </div>
       </div>
     </div>
   );
