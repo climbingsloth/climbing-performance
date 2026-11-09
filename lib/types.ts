@@ -61,6 +61,7 @@ export interface TrainingSession {
   date: string;
   title: string;
   durationMin: number;
+  category: string;
   notes: string;
 }
 

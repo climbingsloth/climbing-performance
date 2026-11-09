@@ -29,7 +29,7 @@ import {
   demoWellness,
 } from "./mock-data";
 
-const STORAGE_KEY = "climbing-performance-v6";
+const STORAGE_KEY = "climbing-performance-v7";
 
 interface StoreState {
   athletes: Athlete[];
@@ -87,7 +87,11 @@ function readStored(): StoreState {
           ? parsed.seasonResults
           : [],
         trainingSessions: Array.isArray(parsed.trainingSessions)
-          ? parsed.trainingSessions
+          ? parsed.trainingSessions.map((s) => ({
+              ...s,
+              category: s.category ?? "Autre physique",
+              planningId: s.planningId ?? null,
+            }))
           : [],
         plannings: Array.isArray(parsed.plannings) ? parsed.plannings : [],
       };

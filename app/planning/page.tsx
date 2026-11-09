@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useStore } from "@/lib/store";
 import { formatDateFr } from "@/lib/growth";
+import { SESSION_CATEGORIES } from "@/lib/categories";
 import type { Planning, SeasonResult, TrainingSession } from "@/lib/types";
 
 const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -89,7 +91,7 @@ export default function PlanningPage() {
   const [planningId, setPlanningId] = useState("");
   const todayIso = new Date().toISOString().slice(0, 10);
   const [viewDate, setViewDate] = useState(todayIso);
-  const [viewMode, setViewMode] = useState<"month" | "week">("month");
+  const [viewMode, setViewMode] = useState<"month" | "week" | "year">("month");
   const [objTitle, setObjTitle] = useState("");
   const [objDate, setObjDate] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -98,6 +100,7 @@ export default function PlanningPage() {
   const [sTitle, setSTitle] = useState("");
   const [sDuration, setSDuration] = useState("");
   const [sNotes, setSNotes] = useState("");
+  const [sCategory, setSCategory] = useState<(typeof SESSION_CATEGORIES)[number]>("Bloc");
   const [error, setError] = useState("");
 
   const selectedAthleteId = athleteId || athletes[0]?.id || "";
@@ -119,6 +122,27 @@ export default function PlanningPage() {
     return monthGrid(v.getFullYear(), v.getMonth());
   }, [viewDate, viewMode]);
 
+  const eventsAll = useMemo(
+    () =>
+      buildEventsByDate(
+        trainingSessions,
+        seasonResults,
+        athletePlannings,
+        selectedAthleteId,
+        "",
+      ),
+    [trainingSessions, seasonResults, athletePlannings, selectedAthleteId],
+  );
+
+  const yearGrids = useMemo(() => {
+    if (viewMode !== "year") return [];
+    const y = new Date(viewDate).getFullYear();
+    return Array.from({ length: 12 }, (_, m) => ({
+      month: m,
+      weeks: monthGrid(y, m),
+    }));
+  }, [viewDate, viewMode]);
+
   const eventsByDate = useMemo(
     () =>
       buildEventsByDate(
@@ -136,6 +160,10 @@ export default function PlanningPage() {
     if (viewMode === "week") {
       const d = new Date(v.getFullYear(), v.getMonth(), v.getDate() + delta * 7);
       setViewDate(isoOf(d));
+      return;
+    }
+    if (viewMode === "year") {
+      setViewDate(isoOf(new Date(v.getFullYear() + delta, 0, 1)));
       return;
     }
     const d = new Date(v.getFullYear(), v.getMonth() + delta, 1);
@@ -179,6 +207,7 @@ export default function PlanningPage() {
       date: sDate,
       title: sTitle.trim(),
       durationMin: d,
+      category: sCategory,
       notes: sNotes.trim(),
     });
     setSTitle("");
@@ -308,7 +337,7 @@ export default function PlanningPage() {
           className="space-y-3 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm lg:col-span-2"
         >
           <h2 className="font-semibold">Nouvelle séance</h2>
-          <div className="grid gap-3 sm:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div>
               <label className="mb-1 block text-sm font-medium">Date</label>
               <input
@@ -339,6 +368,22 @@ export default function PlanningPage() {
               />
             </div>
             <div>
+              <label className="mb-1 block text-sm font-medium">Catégorie</label>
+              <select
+                value={sCategory}
+                onChange={(e) =>
+                  setSCategory(e.target.value as (typeof SESSION_CATEGORIES)[number])
+                }
+                className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm"
+              >
+                {SESSION_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="mb-1 block text-sm font-medium">Notes</label>
               <input
                 value={sNotes}
@@ -358,19 +403,50 @@ export default function PlanningPage() {
         </form>
       </div>
 
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {athletePlannings.map((p) => (
+          <Link
+            key={p.id}
+            href={`/planning/${p.id}`}
+            className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+          >
+            <p className="font-semibold">{p.objective}</p>
+            <p className="mt-1 text-sm text-zinc-600">
+              {formatDateFr(p.startDate)} → {formatDateFr(p.endDate)}
+            </p>
+            <p className="mt-1 text-sm text-purple-700">
+              🎯 objectif le {formatDateFr(p.objectiveDate)}
+            </p>
+            <p className="mt-2 text-sm font-medium text-zinc-900">
+              Voir le détail →
+            </p>
+          </Link>
+        ))}
+        {athletePlannings.length === 0 && (
+          <p className="rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-500 shadow-sm sm:col-span-2 lg:col-span-3">
+            Aucune planification pour cet athlète : créez-en une ci-dessus.
+          </p>
+        )}
+      </div>
+
       <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <button
             onClick={() => shiftView(-1)}
             className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
           >
-            ← {viewMode === "week" ? "Semaine précédente" : "Mois précédent"}
+            ←{" "}
+            {viewMode === "week"
+              ? "Semaine précédente"
+              : viewMode === "year"
+                ? "Année précédente"
+                : "Mois précédent"}
           </button>
           <div className="flex items-center gap-3">
             <div className="flex rounded-md border border-zinc-300">
               <button
                 onClick={() => setViewMode("month")}
-                className={`rounded-l-md px-3 py-1.5 text-sm ${
+                className={`px-3 py-1.5 text-sm ${
                   viewMode === "month"
                     ? "bg-zinc-900 text-white"
                     : "hover:bg-zinc-100"
@@ -380,7 +456,7 @@ export default function PlanningPage() {
               </button>
               <button
                 onClick={() => setViewMode("week")}
-                className={`rounded-r-md px-3 py-1.5 text-sm ${
+                className={`px-3 py-1.5 text-sm ${
                   viewMode === "week"
                     ? "bg-zinc-900 text-white"
                     : "hover:bg-zinc-100"
@@ -388,9 +464,23 @@ export default function PlanningPage() {
               >
                 Semaine
               </button>
+              <button
+                onClick={() => setViewMode("year")}
+                className={`rounded-r-md px-3 py-1.5 text-sm ${
+                  viewMode === "year"
+                    ? "bg-zinc-900 text-white"
+                    : "hover:bg-zinc-100"
+                }`}
+              >
+                Année
+              </button>
             </div>
             <h2 className="text-lg font-semibold capitalize">
-              {viewMode === "week" ? weekRange : monthName}
+              {viewMode === "week"
+                ? weekRange
+                : viewMode === "year"
+                  ? String(new Date(viewDate).getFullYear())
+                  : monthName}
             </h2>
           </div>
           <div className="flex gap-2">
@@ -404,10 +494,60 @@ export default function PlanningPage() {
               onClick={() => shiftView(1)}
               className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
             >
-              {viewMode === "week" ? "Semaine suivante →" : "Mois suivant →"}
+              {viewMode === "week"
+                ? "Semaine suivante →"
+                : viewMode === "year"
+                  ? "Année suivante →"
+                  : "Mois suivant →"}
             </button>
           </div>
         </div>
+        {viewMode === "year" && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {yearGrids.map(({ month, weeks }) => (
+              <button
+                key={month}
+                onClick={() => {
+                  const y = new Date(viewDate).getFullYear();
+                  setViewDate(isoOf(new Date(y, month, 1)));
+                  setViewMode("month");
+                }}
+                className="rounded-xl border border-zinc-200 bg-white p-3 text-left shadow-sm hover:border-zinc-400"
+              >
+                <p className="mb-2 text-sm font-semibold capitalize">
+                  {new Date(2000, month, 1).toLocaleDateString("fr-FR", {
+                    month: "long",
+                  })}
+                </p>
+                <div className="grid grid-cols-7 gap-px">
+                  {weeks.flat().map((cell, i) => {
+                    const hasEvents = cell ? eventsAll.has(cell) : false;
+                    const isObjective =
+                      cell && eventsAll.get(cell)?.objectives.length;
+                    return (
+                      <div key={i} className="flex h-6 items-center justify-center">
+                        {cell && (
+                          <span
+                            className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
+                              isObjective
+                                ? "bg-purple-500 font-bold text-white"
+                                : hasEvents
+                                  ? "bg-zinc-900 text-white"
+                                  : "text-zinc-400"
+                            }`}
+                          >
+                            {Number(cell.slice(8, 10))}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+        {viewMode !== "year" && (
         <div
           className={`grid ${
             viewMode === "week" ? "grid-cols-1 sm:grid-cols-7" : "grid-cols-7"
@@ -477,6 +617,7 @@ export default function PlanningPage() {
             );
           })}
         </div>
+        )}
         <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-600">
           <span>
             <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-zinc-900 align-middle" />

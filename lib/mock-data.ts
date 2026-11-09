@@ -154,10 +154,10 @@ export const demoPlannings: Planning[] = [
 ];
 
 export const demoTrainingSessions: TrainingSession[] = [
-  { id: "ts-1", athleteId: "ath-1", planningId: "p-1", date: "2026-11-09", title: "Bloc — force doigts", durationMin: 90, notes: "4x7 tractions poutre 20mm" },
-  { id: "ts-2", athleteId: "ath-1", planningId: "p-1", date: "2026-11-10", title: "Voie — lecture", durationMin: 75, notes: "Travail lecture à vue" },
-  { id: "ts-3", athleteId: "ath-1", planningId: "p-1", date: "2026-11-11", title: "Renforcement core", durationMin: 45, notes: "" },
-  { id: "ts-4", athleteId: "ath-1", planningId: "p-2", date: "2026-12-16", title: "Bloc — puissance", durationMin: 90, notes: "Campus board modéré" },
-  { id: "ts-5", athleteId: "ath-2", planningId: "p-3", date: "2026-11-09", title: "Endurance de voie", durationMin: 80, notes: "4x4 voies enchaînées" },
-  { id: "ts-6", athleteId: "ath-2", planningId: "p-3", date: "2026-11-12", title: "Technique — pieds", durationMin: 60, notes: "" },
+  { id: "ts-1", athleteId: "ath-1", planningId: "p-1", date: "2026-11-09", title: "Bloc — force doigts", durationMin: 90, category: "Doigts", notes: "4x7 tractions poutre 20mm" },
+  { id: "ts-2", athleteId: "ath-1", planningId: "p-1", date: "2026-11-10", title: "Voie — lecture", durationMin: 75, category: "Paroi", notes: "Travail lecture à vue" },
+  { id: "ts-3", athleteId: "ath-1", planningId: "p-1", date: "2026-11-11", title: "Renforcement core", durationMin: 45, category: "Gainage", notes: "" },
+  { id: "ts-4", athleteId: "ath-1", planningId: "p-2", date: "2026-12-16", title: "Bloc — puissance", durationMin: 90, category: "Bloc", notes: "Campus board modéré" },
+  { id: "ts-5", athleteId: "ath-2", planningId: "p-3", date: "2026-11-09", title: "Endurance de voie", durationMin: 80, category: "Paroi", notes: "4x4 voies enchaînées" },
+  { id: "ts-6", athleteId: "ath-2", planningId: "p-3", date: "2026-11-12", title: "Technique — pieds", durationMin: 60, category: "Technico-tactique", notes: "" },
 ];
