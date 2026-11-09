@@ -55,14 +55,15 @@ function readStored(): StoreState {
 }
 
 const listeners = new Set<() => void>();
+const demoSnapshot: StoreState = demoState();
 let cachedRaw: string | null = null;
-let cachedState: StoreState = demoState();
+let cachedState: StoreState = demoSnapshot;
 
 function getSnapshot(): StoreState {
   const raw = window.localStorage.getItem(STORAGE_KEY);
   if (raw !== cachedRaw) {
     cachedRaw = raw;
-    cachedState = raw ? readStored() : demoState();
+    cachedState = raw ? readStored() : demoSnapshot;
   }
   return cachedState;
 }
@@ -82,7 +83,7 @@ function persist(next: StoreState): void {
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const state = useSyncExternalStore(subscribe, getSnapshot, demoState);
+  const state = useSyncExternalStore(subscribe, getSnapshot, () => demoSnapshot);
 
   const addAthlete = useCallback(
     (athlete: Omit<Athlete, "id" | "createdAt">) => {
