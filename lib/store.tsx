@@ -162,6 +162,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const removeAthlete = useCallback((id: string) => {
     const current = getSnapshot();
     persist({
+      ...current,
       athletes: current.athletes.filter((a) => a.id !== id),
       measurements: current.measurements.filter((m) => m.athleteId !== id),
       wellness: current.wellness.filter((w) => w.athleteId !== id),
