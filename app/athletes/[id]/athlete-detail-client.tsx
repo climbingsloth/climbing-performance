@@ -236,7 +236,7 @@ export default function AthleteDetailClient({
               </Link>
             )}
             <Link
-              href="/planning"
+              href={`/planning?athlete=${athleteId}`}
               className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
             >
               + Gérer les planifications
@@ -470,7 +470,7 @@ export default function AthleteDetailClient({
         <div className="space-y-3">
           <div className="flex justify-end">
             <Link
-              href="/mensurations"
+              href={`/mensurations?athlete=${athleteId}`}
               className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
             >
               + Saisir une mensuration
@@ -519,7 +519,7 @@ export default function AthleteDetailClient({
         <div className="space-y-4">
           <div className="flex justify-end">
             <Link
-              href="/tests"
+              href={`/tests?athlete=${athleteId}`}
               className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
             >
               + Saisir un test
@@ -565,7 +565,7 @@ export default function AthleteDetailClient({
         <div className="space-y-3">
           <div className="flex justify-end">
             <Link
-              href="/resultats"
+              href={`/resultats?athlete=${athleteId}`}
               className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
             >
               + Saisir un résultat
@@ -609,7 +609,7 @@ export default function AthleteDetailClient({
         <div className="space-y-3">
           <div className="flex justify-end">
             <Link
-              href="/bien-etre"
+              href={`/bien-etre?athlete=${athleteId}`}
               className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark"
             >
               + Saisir une journée

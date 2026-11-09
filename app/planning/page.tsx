@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState, type FormEvent } from "react";
 import { useStore } from "@/lib/store";
 import { formatDateFr } from "@/lib/growth";
 import { SESSION_CATEGORIES } from "@/lib/categories";
@@ -77,7 +78,7 @@ function weekStartOf(dateIso: string): string {
   return isoOf(monday);
 }
 
-export default function PlanningPage() {
+function PlanningInner() {
   const {
     athletes,
     plannings,
@@ -86,8 +87,10 @@ export default function PlanningPage() {
     addPlanning,
     addTrainingSession,
   } = useStore();
+  const searchParams = useSearchParams();
+  const athleteParam = searchParams.get("athlete") ?? "";
 
-  const [athleteId, setAthleteId] = useState("");
+  const [athleteId, setAthleteId] = useState(athleteParam);
   const [planningId, setPlanningId] = useState("");
   const todayIso = new Date().toISOString().slice(0, 10);
   const [viewDate, setViewDate] = useState(todayIso);
@@ -241,6 +244,15 @@ export default function PlanningPage() {
           dates configurables. Vue calendrier des séances et compétitions.
         </p>
       </div>
+      {athleteParam && (
+        <Link
+          href={`/athletes/${athleteParam}`}
+          className="text-sm font-medium text-brand underline"
+        >
+          ← Fiche de l&apos;athlète
+        </Link>
+      )}
+
 
       <div className="flex flex-wrap items-end gap-4">
         <div>
@@ -634,5 +646,14 @@ export default function PlanningPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+
+export default function PlanningPage() {
+  return (
+    <Suspense fallback={null}>
+      <PlanningInner />
+    </Suspense>
   );
 }

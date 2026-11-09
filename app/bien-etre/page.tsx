@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState, type FormEvent } from "react";
 import { useStore } from "@/lib/store";
 import { formatDateFr } from "@/lib/growth";
 
@@ -14,9 +16,11 @@ const fields = [
 
 type FieldKey = (typeof fields)[number]["key"];
 
-export default function BienEtrePage() {
+function BienEtreInner() {
   const { athletes, wellness, addWellness } = useStore();
-  const [athleteId, setAthleteId] = useState("");
+  const searchParams = useSearchParams();
+  const athleteParam = searchParams.get("athlete") ?? "";
+  const [athleteId, setAthleteId] = useState(athleteParam);
   const [date, setDate] = useState("");
   const [scores, setScores] = useState<Record<FieldKey, number>>({
     sleep: 7,
@@ -83,6 +87,15 @@ export default function BienEtrePage() {
           courbatures.
         </p>
       </div>
+      {athleteParam && (
+        <Link
+          href={`/athletes/${athleteParam}`}
+          className="text-sm font-medium text-brand underline"
+        >
+          ← Fiche de l&apos;athlète
+        </Link>
+      )}
+
 
       <div className="flex flex-wrap items-end gap-4">
         <div>
@@ -201,5 +214,14 @@ export default function BienEtrePage() {
         </table>
       </div>
     </div>
+  );
+}
+
+
+export default function BienEtrePage() {
+  return (
+    <Suspense fallback={null}>
+      <BienEtreInner />
+    </Suspense>
   );
 }

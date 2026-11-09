@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState, type FormEvent } from "react";
 import { useStore } from "@/lib/store";
 import { formatDateFr } from "@/lib/growth";
 
-export default function TestsPage() {
+function TestsPageInner() {
   const {
     athletes,
     testDefinitions,
@@ -12,8 +14,10 @@ export default function TestsPage() {
     addTestDefinition,
     addTestResult,
   } = useStore();
+  const searchParams = useSearchParams();
+  const athleteParam = searchParams.get("athlete") ?? "";
 
-  const [athleteId, setAthleteId] = useState("");
+  const [athleteId, setAthleteId] = useState(athleteParam);
   const [newTestName, setNewTestName] = useState("");
   const [newTestUnit, setNewTestUnit] = useState("");
   const [testId, setTestId] = useState("");
@@ -80,6 +84,15 @@ export default function TestsPage() {
           puis saisissez les résultats datés de chaque athlète.
         </p>
       </div>
+
+      {athleteParam && (
+        <Link
+          href={`/athletes/${athleteParam}`}
+          className="text-sm font-medium text-brand underline"
+        >
+          ← Fiche de l&apos;athlète
+        </Link>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <form
@@ -247,5 +260,13 @@ export default function TestsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function TestsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TestsPageInner />
+    </Suspense>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState, type FormEvent } from "react";
 import { useStore } from "@/lib/store";
 import {
   bmi,
@@ -9,9 +11,11 @@ import {
   predictedAphpv,
 } from "@/lib/growth";
 
-export default function MensurationsPage() {
+function MensurationsInner() {
   const { athletes, measurements, addMeasurement } = useStore();
-  const [athleteId, setAthleteId] = useState("");
+  const searchParams = useSearchParams();
+  const athleteParam = searchParams.get("athlete") ?? "";
+  const [athleteId, setAthleteId] = useState(athleteParam);
   const [date, setDate] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
@@ -71,6 +75,15 @@ export default function MensurationsPage() {
           pic de croissance (PHV, méthode de Mirwald 2002).
         </p>
       </div>
+      {athleteParam && (
+        <Link
+          href={`/athletes/${athleteParam}`}
+          className="text-sm font-medium text-brand underline"
+        >
+          ← Fiche de l&apos;athlète
+        </Link>
+      )}
+
 
       <div className="flex flex-wrap items-end gap-4">
         <div>
@@ -218,5 +231,14 @@ export default function MensurationsPage() {
         </table>
       </div>
     </div>
+  );
+}
+
+
+export default function MensurationsPage() {
+  return (
+    <Suspense fallback={null}>
+      <MensurationsInner />
+    </Suspense>
   );
 }

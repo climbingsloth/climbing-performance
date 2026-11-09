@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState, type FormEvent } from "react";
 import { useStore } from "@/lib/store";
 import { formatDateFr } from "@/lib/growth";
 
@@ -10,9 +12,11 @@ function currentSeason(): string {
   return now.getMonth() >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
 }
 
-export default function ResultatsPage() {
+function ResultatsInner() {
   const { athletes, seasonResults, addSeasonResult } = useStore();
-  const [athleteId, setAthleteId] = useState("");
+  const searchParams = useSearchParams();
+  const athleteParam = searchParams.get("athlete") ?? "";
+  const [athleteId, setAthleteId] = useState(athleteParam);
   const [season, setSeason] = useState(currentSeason());
   const [competition, setCompetition] = useState("");
   const [date, setDate] = useState("");
@@ -62,6 +66,15 @@ export default function ResultatsPage() {
           Compétitions et performances de chaque athlète, saison par saison.
         </p>
       </div>
+      {athleteParam && (
+        <Link
+          href={`/athletes/${athleteParam}`}
+          className="text-sm font-medium text-brand underline"
+        >
+          ← Fiche de l&apos;athlète
+        </Link>
+      )}
+
 
       <div className="flex flex-wrap items-end gap-4">
         <div>
@@ -187,5 +200,14 @@ export default function ResultatsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+
+export default function ResultatsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResultatsInner />
+    </Suspense>
   );
 }
