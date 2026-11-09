@@ -1,0 +1,659 @@
+"use client";
+
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState, type FormEvent } from "react";
+import { useStore } from "@/lib/store";
+import { formatDateFr } from "@/lib/growth";
+import { SESSION_CATEGORIES } from "@/lib/categories";
+import type { Planning, SeasonResult, TrainingSession } from "@/lib/types";
+
+const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
+interface DayEvents {
+  sessions: TrainingSession[];
+  comps: SeasonResult[];
+  objectives: Planning[];
+}
+
+function buildEventsByDate(
+  trainingSessions: TrainingSession[],
+  seasonResults: SeasonResult[],
+  plannings: Planning[],
+  athleteId: string,
+  planningId: string,
+): Map<string, DayEvents> {
+  const map = new Map<string, DayEvents>();
+  const get = (date: string): DayEvents => {
+    const list = map.get(date) ?? { sessions: [], comps: [], objectives: [] };
+    map.set(date, list);
+    return list;
+  };
+  for (const s of trainingSessions) {
+    if (s.athleteId !== athleteId) continue;
+    if (planningId && s.planningId && s.planningId !== planningId) continue;
+    get(s.date).sessions.push(s);
+  }
+  for (const c of seasonResults) {
+    if (c.athleteId === athleteId) get(c.date).comps.push(c);
+  }
+  for (const p of plannings) {
+    get(p.objectiveDate).objectives.push(p);
+  }
+  return map;
+}
+
+function isoOf(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function monthGrid(year: number, month: number): string[][] {
+  const first = new Date(year, month, 1);
+  const startOffset = (first.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: string[] = [];
+  for (let i = 0; i < startOffset; i++) cells.push("");
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push(isoOf(new Date(year, month, d)));
+  }
+  while (cells.length % 7 !== 0) cells.push("");
+  const weeks: string[][] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
+}
+
+function weekGrid(weekStartIso: string): string[][] {
+  const monday = new Date(weekStartIso);
+  const cells: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+    cells.push(isoOf(d));
+  }
+  return [cells];
+}
+
+function weekStartOf(dateIso: string): string {
+  const d = new Date(dateIso);
+  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+  return isoOf(monday);
+}
+
+function PlanningInner() {
+  const {
+    athletes,
+    plannings,
+    trainingSessions,
+    seasonResults,
+    addPlanning,
+    addTrainingSession,
+  } = useStore();
+  const searchParams = useSearchParams();
+  const athleteParam = searchParams.get("athlete") ?? "";
+
+  const [athleteId, setAthleteId] = useState(athleteParam);
+  const [planningId, setPlanningId] = useState("");
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const [viewDate, setViewDate] = useState(todayIso);
+  const [viewMode, setViewMode] = useState<"month" | "week" | "year">("month");
+  const [objTitle, setObjTitle] = useState("");
+  const [objDate, setObjDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [sDate, setSDate] = useState("");
+  const [sTitle, setSTitle] = useState("");
+  const [sDuration, setSDuration] = useState("");
+  const [sNotes, setSNotes] = useState("");
+  const [sCategory, setSCategory] = useState<(typeof SESSION_CATEGORIES)[number]>("Bloc");
+  const [error, setError] = useState("");
+
+  const selectedAthleteId = athleteId || athletes[0]?.id || "";
+  const athletePlannings = useMemo(
+    () =>
+      plannings
+        .filter((p) => p.athleteId === selectedAthleteId)
+        .sort((a, b) => b.startDate.localeCompare(a.startDate)),
+    [plannings, selectedAthleteId],
+  );
+  const selectedPlanningId =
+    planningId && athletePlannings.some((p) => p.id === planningId)
+      ? planningId
+      : athletePlannings[0]?.id ?? "";
+
+  const grid = useMemo(() => {
+    if (viewMode === "week") return weekGrid(weekStartOf(viewDate));
+    const v = new Date(viewDate);
+    return monthGrid(v.getFullYear(), v.getMonth());
+  }, [viewDate, viewMode]);
+
+  const eventsAll = useMemo(
+    () =>
+      buildEventsByDate(
+        trainingSessions,
+        seasonResults,
+        athletePlannings,
+        selectedAthleteId,
+        "",
+      ),
+    [trainingSessions, seasonResults, athletePlannings, selectedAthleteId],
+  );
+
+  const yearGrids = useMemo(() => {
+    if (viewMode !== "year") return [];
+    const y = new Date(viewDate).getFullYear();
+    return Array.from({ length: 12 }, (_, m) => ({
+      month: m,
+      weeks: monthGrid(y, m),
+    }));
+  }, [viewDate, viewMode]);
+
+  const eventsByDate = useMemo(
+    () =>
+      buildEventsByDate(
+        trainingSessions,
+        seasonResults,
+        athletePlannings,
+        selectedAthleteId,
+        selectedPlanningId,
+      ),
+    [trainingSessions, seasonResults, athletePlannings, selectedAthleteId, selectedPlanningId],
+  );
+
+  function shiftView(delta: number) {
+    const v = new Date(viewDate);
+    if (viewMode === "week") {
+      const d = new Date(v.getFullYear(), v.getMonth(), v.getDate() + delta * 7);
+      setViewDate(isoOf(d));
+      return;
+    }
+    if (viewMode === "year") {
+      setViewDate(isoOf(new Date(v.getFullYear() + delta, 0, 1)));
+      return;
+    }
+    const d = new Date(v.getFullYear(), v.getMonth() + delta, 1);
+    setViewDate(isoOf(d));
+  }
+
+  function onAddPlanning(e: FormEvent) {
+    e.preventDefault();
+    if (!selectedAthleteId || !objTitle.trim() || !objDate || !startDate || !endDate) {
+      setError("Objectif, date d'objectif, début et fin sont obligatoires.");
+      return;
+    }
+    if (endDate < startDate || objDate < startDate || objDate > endDate) {
+      setError("Les dates doivent être cohérentes : début ≤ objectif ≤ fin.");
+      return;
+    }
+    addPlanning({
+      athleteId: selectedAthleteId,
+      objective: objTitle.trim(),
+      objectiveDate: objDate,
+      startDate,
+      endDate,
+    });
+    setObjTitle("");
+    setObjDate("");
+    setStartDate("");
+    setEndDate("");
+    setError("");
+  }
+
+  function onAddSession(e: FormEvent) {
+    e.preventDefault();
+    const d = parseInt(sDuration, 10);
+    if (!selectedAthleteId || !sDate || !sTitle.trim() || Number.isNaN(d) || d <= 0) {
+      setError("Date, titre et durée (en minutes, > 0) sont obligatoires.");
+      return;
+    }
+    addTrainingSession({
+      athleteId: selectedAthleteId,
+      planningId: selectedPlanningId || null,
+      date: sDate,
+      title: sTitle.trim(),
+      durationMin: d,
+      category: sCategory,
+      notes: sNotes.trim(),
+    });
+    setSTitle("");
+    setSDuration("");
+    setSNotes("");
+    setError("");
+  }
+
+  const monthName = new Date(viewDate).toLocaleDateString("fr-FR", {
+    month: "long",
+    year: "numeric",
+  });
+  const weekStart = weekStartOf(viewDate);
+  const weekEndDate = new Date(weekStart);
+  weekEndDate.setDate(weekEndDate.getDate() + 6);
+  const weekRange = `${new Date(weekStart).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+  })} → ${weekEndDate.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })}`;
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold">Planning d&apos;entraînement</h1>
+        <p className="mt-1 text-zinc-600">
+          Chaque planification est liée à un objectif et à un athlète, avec des
+          dates configurables. Vue calendrier des séances et compétitions.
+        </p>
+      </div>
+      {athleteParam && (
+        <Link
+          href={`/athletes/${athleteParam}`}
+          className="text-sm font-medium text-brand underline"
+        >
+          ← Fiche de l&apos;athlète
+        </Link>
+      )}
+
+
+      <div className="flex flex-wrap items-end gap-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium">Athlète</label>
+          <select
+            value={selectedAthleteId}
+            onChange={(e) => {
+              setAthleteId(e.target.value);
+              setPlanningId("");
+            }}
+            className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm"
+          >
+            {athletes.length === 0 && <option value="">Aucun athlète</option>}
+            {athletes.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.firstName} {a.lastName}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Planification</label>
+          <select
+            value={selectedPlanningId}
+            onChange={(e) => setPlanningId(e.target.value)}
+            className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm"
+          >
+            {athletePlannings.length === 0 && (
+              <option value="">Aucune planification</option>
+            )}
+            {athletePlannings.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.objective} ({formatDateFr(p.startDate)} →{" "}
+                {formatDateFr(p.endDate)})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <form
+          onSubmit={onAddPlanning}
+          className="space-y-3 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm"
+        >
+          <h2 className="font-semibold">Nouvelle planification</h2>
+          <input
+            value={objTitle}
+            onChange={(e) => setObjTitle(e.target.value)}
+            placeholder="Objectif (ex. Coupe régionale U17)"
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+          />
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Date de l&apos;objectif
+            </label>
+            <input
+              type="date"
+              value={objDate}
+              onChange={(e) => setObjDate(e.target.value)}
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Début</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Fin</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark"
+          >
+            Créer la planification
+          </button>
+        </form>
+
+        <form
+          onSubmit={onAddSession}
+          className="space-y-3 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm lg:col-span-2"
+        >
+          <h2 className="font-semibold">Nouvelle séance</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Date</label>
+              <input
+                type="date"
+                value={sDate}
+                onChange={(e) => setSDate(e.target.value)}
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Séance</label>
+              <input
+                value={sTitle}
+                onChange={(e) => setSTitle(e.target.value)}
+                placeholder="Bloc — force doigts"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Durée (min)</label>
+              <input
+                type="number"
+                min={1}
+                value={sDuration}
+                onChange={(e) => setSDuration(e.target.value)}
+                placeholder="90"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Catégorie</label>
+              <select
+                value={sCategory}
+                onChange={(e) =>
+                  setSCategory(e.target.value as (typeof SESSION_CATEGORIES)[number])
+                }
+                className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm"
+              >
+                {SESSION_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Notes</label>
+              <input
+                value={sNotes}
+                onChange={(e) => setSNotes(e.target.value)}
+                placeholder="Détail..."
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark"
+          >
+            Ajouter la séance
+          </button>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+        </form>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {athletePlannings.map((p) => (
+          <Link
+            key={p.id}
+            href={`/planning/${p.id}`}
+            className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+          >
+            <p className="font-semibold">{p.objective}</p>
+            <p className="mt-1 text-sm text-zinc-600">
+              {formatDateFr(p.startDate)} → {formatDateFr(p.endDate)}
+            </p>
+            <p className="mt-1 text-sm text-purple-700">
+              🎯 objectif le {formatDateFr(p.objectiveDate)}
+            </p>
+            <p className="mt-2 text-sm font-medium text-zinc-900">
+              Voir le détail →
+            </p>
+          </Link>
+        ))}
+        {athletePlannings.length === 0 && (
+          <p className="rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-500 shadow-sm sm:col-span-2 lg:col-span-3">
+            Aucune planification pour cet athlète : créez-en une ci-dessus.
+          </p>
+        )}
+      </div>
+
+      <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <button
+            onClick={() => shiftView(-1)}
+            className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+          >
+            ←{" "}
+            {viewMode === "week"
+              ? "Semaine précédente"
+              : viewMode === "year"
+                ? "Année précédente"
+                : "Mois précédent"}
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex rounded-md border border-zinc-300">
+              <button
+                onClick={() => setViewMode("month")}
+                className={`px-3 py-1.5 text-sm ${
+                  viewMode === "month"
+                    ? "bg-brand text-white"
+                    : "hover:bg-zinc-100"
+                }`}
+              >
+                Mois
+              </button>
+              <button
+                onClick={() => setViewMode("week")}
+                className={`px-3 py-1.5 text-sm ${
+                  viewMode === "week"
+                    ? "bg-brand text-white"
+                    : "hover:bg-zinc-100"
+                }`}
+              >
+                Semaine
+              </button>
+              <button
+                onClick={() => setViewMode("year")}
+                className={`rounded-r-md px-3 py-1.5 text-sm ${
+                  viewMode === "year"
+                    ? "bg-brand text-white"
+                    : "hover:bg-zinc-100"
+                }`}
+              >
+                Année
+              </button>
+            </div>
+            <h2 className="text-lg font-semibold capitalize">
+              {viewMode === "week"
+                ? weekRange
+                : viewMode === "year"
+                  ? String(new Date(viewDate).getFullYear())
+                  : monthName}
+            </h2>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewDate(todayIso)}
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+            >
+              Aujourd&apos;hui
+            </button>
+            <button
+              onClick={() => shiftView(1)}
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+            >
+              {viewMode === "week"
+                ? "Semaine suivante →"
+                : viewMode === "year"
+                  ? "Année suivante →"
+                  : "Mois suivant →"}
+            </button>
+          </div>
+        </div>
+        {viewMode === "year" && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {yearGrids.map(({ month, weeks }) => (
+              <button
+                key={month}
+                onClick={() => {
+                  const y = new Date(viewDate).getFullYear();
+                  setViewDate(isoOf(new Date(y, month, 1)));
+                  setViewMode("month");
+                }}
+                className="rounded-xl border border-zinc-200 bg-white p-3 text-left shadow-sm hover:border-zinc-400"
+              >
+                <p className="mb-2 text-sm font-semibold capitalize">
+                  {new Date(2000, month, 1).toLocaleDateString("fr-FR", {
+                    month: "long",
+                  })}
+                </p>
+                <div className="grid grid-cols-7 gap-px">
+                  {weeks.flat().map((cell, i) => {
+                    const hasEvents = cell ? eventsAll.has(cell) : false;
+                    const isObjective =
+                      cell && eventsAll.get(cell)?.objectives.length;
+                    return (
+                      <div key={i} className="flex h-6 items-center justify-center">
+                        {cell && (
+                          <span
+                            className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
+                              isObjective
+                                ? "bg-purple-500 font-bold text-white"
+                                : hasEvents
+                                  ? "bg-brand text-white"
+                                  : "text-zinc-400"
+                            }`}
+                          >
+                            {Number(cell.slice(8, 10))}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+        {viewMode !== "year" && (
+        <div
+          className={`grid ${
+            viewMode === "week" ? "grid-cols-1 sm:grid-cols-7" : "grid-cols-7"
+          } gap-px overflow-hidden rounded-lg border border-zinc-200 bg-zinc-200`}
+        >
+          {grid[0].map((cell, dayIdx) => (
+            <div
+              key={dayIdx}
+              className="bg-zinc-50 px-2 py-2 text-center text-xs font-semibold text-zinc-500"
+            >
+              {viewMode === "week" && cell
+                ? `${weekDays[dayIdx]} ${new Date(cell).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`
+                : weekDays[dayIdx]}
+            </div>
+          ))}
+          {grid.flat().map((cell, i) => {
+            const events = cell ? eventsByDate.get(cell) : undefined;
+            const isToday = cell === todayIso;
+            return (
+              <div
+                key={i}
+                className={`bg-white p-1.5 ${
+                  viewMode === "week" ? "min-h-40" : "min-h-24"
+                } ${cell ? "" : "bg-zinc-50"} ${
+                  isToday ? "ring-2 ring-inset ring-brand" : ""
+                }`}
+              >
+                {cell && (
+                  <p
+                    className={`text-xs font-semibold ${
+                      isToday || viewMode === "week" ? "text-zinc-900" : "text-zinc-400"
+                    }`}
+                  >
+                    {Number(cell.slice(8, 10))}
+                  </p>
+                )}
+                <div className="mt-1 space-y-1">
+                  {events?.objectives.map((p) => (
+                    <p
+                      key={p.id}
+                      className="truncate rounded bg-purple-100 px-1 py-0.5 text-[11px] font-medium text-purple-900"
+                      title={`Objectif : ${p.objective}`}
+                    >
+                      🎯 {p.objective}
+                    </p>
+                  ))}
+                  {events?.comps.map((c) => (
+                    <p
+                      key={c.id}
+                      className="truncate rounded bg-red-100 px-1 py-0.5 text-[11px] font-medium text-red-900"
+                      title={c.competition}
+                    >
+                      🏆 {c.competition}
+                    </p>
+                  ))}
+                  {events?.sessions.map((s) => (
+                    <p
+                      key={s.id}
+                      className="truncate rounded bg-brand px-1 py-0.5 text-[11px] text-white"
+                      title={`${s.title} — ${s.durationMin} min`}
+                    >
+                      {s.title} ({s.durationMin} min)
+                    </p>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        )}
+        <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-600">
+          <span>
+            <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-brand align-middle" />
+            Séance d&apos;entraînement
+          </span>
+          <span>
+            <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-red-100 align-middle" />
+            Compétition
+          </span>
+          <span>
+            <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-purple-100 align-middle" />
+            Date d&apos;objectif
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+export default function PlanningPage() {
+  return (
+    <Suspense fallback={null}>
+      <PlanningInner />
+    </Suspense>
+  );
+}
