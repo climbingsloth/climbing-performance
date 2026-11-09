@@ -92,13 +92,10 @@ export default function PlanningPage() {
       ? planningId
       : athletePlannings[0]?.id ?? "";
 
-  const view = new Date(viewDate);
-  const viewYear = view.getFullYear();
-  const viewMonth = view.getMonth();
-  const grid = useMemo(
-    () => monthGrid(viewYear, viewMonth),
-    [viewYear, viewMonth],
-  );
+  const grid = useMemo(() => {
+    const v = new Date(viewDate);
+    return monthGrid(v.getFullYear(), v.getMonth());
+  }, [viewDate]);
 
   const eventsByDate = useMemo(
     () =>
@@ -113,7 +110,8 @@ export default function PlanningPage() {
   );
 
   function shiftMonth(delta: number) {
-    const d = new Date(viewYear, viewMonth + delta, 1);
+    const v = new Date(viewDate);
+    const d = new Date(v.getFullYear(), v.getMonth() + delta, 1);
     setViewDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`);
   }
 
@@ -162,7 +160,7 @@ export default function PlanningPage() {
     setError("");
   }
 
-  const monthName = view.toLocaleDateString("fr-FR", {
+  const monthName = new Date(viewDate).toLocaleDateString("fr-FR", {
     month: "long",
     year: "numeric",
   });
