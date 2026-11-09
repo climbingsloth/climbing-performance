@@ -4,6 +4,7 @@ export const SESSION_CATEGORIES = [
   "Doigts",
   "Bras",
   "Gainage",
+  "Capacité aérobie",
   "Autre physique",
   "Mental",
   "Souplesse/Mobilité",
@@ -15,21 +16,22 @@ export const SESSION_CATEGORIES = [
 ] as const;
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  "Force max bras/gainage/doigts": "bg-red-500",
-  Suspension: "bg-red-300",
-  Doigts: "bg-red-200",
-  Bras: "bg-orange-300",
-  Gainage: "bg-orange-200",
-  "Autre physique": "bg-zinc-300",
-  Mental: "bg-blue-400",
-  "Souplesse/Mobilité": "bg-blue-200",
-  "Technico-tactique": "bg-green-400",
-  Bloc: "bg-yellow-300",
-  Paroi: "bg-yellow-200",
-  Récupération: "bg-emerald-200",
-  Compétition: "bg-purple-400",
+  "Force max bras/gainage/doigts": "bg-[#e74c3c]",
+  Suspension: "bg-[#e74c3c]/70",
+  Doigts: "bg-[#e74c3c]/50",
+  Bras: "bg-[#e67e22]",
+  Gainage: "bg-[#f39c12]",
+  "Capacité aérobie": "bg-[#9b59b6]",
+  "Autre physique": "bg-zinc-400",
+  Mental: "bg-[#3498db]",
+  "Souplesse/Mobilité": "bg-[#3498db]/60",
+  "Technico-tactique": "bg-[#2ecc71]",
+  Bloc: "bg-[#f1c40f]",
+  Paroi: "bg-[#f1c40f]/60",
+  Récupération: "bg-[#2ecc71]/60",
+  Compétition: "bg-[#9b59b6]",
 };
 
 export function categoryColor(category: string): string {
-  return CATEGORY_COLORS[category] ?? "bg-zinc-900";
+  return CATEGORY_COLORS[category] ?? "bg-[#2c3e50]";
 }

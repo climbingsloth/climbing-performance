@@ -164,7 +164,7 @@ export default function MensurationsPage() {
         <div className="flex items-end">
           <button
             type="submit"
-            className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+            className="w-full rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark"
           >
             Enregistrer
           </button>

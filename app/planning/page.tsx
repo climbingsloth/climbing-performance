@@ -326,7 +326,7 @@ export default function PlanningPage() {
           </div>
           <button
             type="submit"
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark"
           >
             Créer la planification
           </button>
@@ -395,7 +395,7 @@ export default function PlanningPage() {
           </div>
           <button
             type="submit"
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark"
           >
             Ajouter la séance
           </button>
@@ -448,7 +448,7 @@ export default function PlanningPage() {
                 onClick={() => setViewMode("month")}
                 className={`px-3 py-1.5 text-sm ${
                   viewMode === "month"
-                    ? "bg-zinc-900 text-white"
+                    ? "bg-brand text-white"
                     : "hover:bg-zinc-100"
                 }`}
               >
@@ -458,7 +458,7 @@ export default function PlanningPage() {
                 onClick={() => setViewMode("week")}
                 className={`px-3 py-1.5 text-sm ${
                   viewMode === "week"
-                    ? "bg-zinc-900 text-white"
+                    ? "bg-brand text-white"
                     : "hover:bg-zinc-100"
                 }`}
               >
@@ -468,7 +468,7 @@ export default function PlanningPage() {
                 onClick={() => setViewMode("year")}
                 className={`rounded-r-md px-3 py-1.5 text-sm ${
                   viewMode === "year"
-                    ? "bg-zinc-900 text-white"
+                    ? "bg-brand text-white"
                     : "hover:bg-zinc-100"
                 }`}
               >
@@ -532,7 +532,7 @@ export default function PlanningPage() {
                               isObjective
                                 ? "bg-purple-500 font-bold text-white"
                                 : hasEvents
-                                  ? "bg-zinc-900 text-white"
+                                  ? "bg-brand text-white"
                                   : "text-zinc-400"
                             }`}
                           >
@@ -572,7 +572,7 @@ export default function PlanningPage() {
                 className={`bg-white p-1.5 ${
                   viewMode === "week" ? "min-h-40" : "min-h-24"
                 } ${cell ? "" : "bg-zinc-50"} ${
-                  isToday ? "ring-2 ring-inset ring-zinc-900" : ""
+                  isToday ? "ring-2 ring-inset ring-brand" : ""
                 }`}
               >
                 {cell && (
@@ -606,7 +606,7 @@ export default function PlanningPage() {
                   {events?.sessions.map((s) => (
                     <p
                       key={s.id}
-                      className="truncate rounded bg-zinc-900 px-1 py-0.5 text-[11px] text-white"
+                      className="truncate rounded bg-brand px-1 py-0.5 text-[11px] text-white"
                       title={`${s.title} — ${s.durationMin} min`}
                     >
                       {s.title} ({s.durationMin} min)
@@ -620,7 +620,7 @@ export default function PlanningPage() {
         )}
         <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-600">
           <span>
-            <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-zinc-900 align-middle" />
+            <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-brand align-middle" />
             Séance d&apos;entraînement
           </span>
           <span>

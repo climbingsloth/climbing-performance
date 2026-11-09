@@ -147,14 +147,14 @@ export default function BienEtrePage() {
                 onChange={(e) =>
                   setScores((s) => ({ ...s, [f.key]: Number(e.target.value) }))
                 }
-                className="w-full accent-zinc-900"
+                className="w-full accent-brand"
               />
             </div>
           ))}
         </div>
         <button
           type="submit"
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+          className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark"
         >
           Enregistrer la journée
         </button>
