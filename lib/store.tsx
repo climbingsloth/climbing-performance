@@ -8,21 +8,37 @@ import {
   createContext,
   type ReactNode,
 } from "react";
-import type { Athlete, Measurement, WellnessEntry } from "./types";
-import { demoAthletes, demoMeasurements, demoWellness } from "./mock-data";
+import type {
+  Athlete,
+  Measurement,
+  TestDefinition,
+  TestResult,
+  WellnessEntry,
+} from "./types";
+import {
+  demoAthletes,
+  demoMeasurements,
+  demoTestDefinitions,
+  demoTestResults,
+  demoWellness,
+} from "./mock-data";
 
-const STORAGE_KEY = "climbing-performance-v2";
+const STORAGE_KEY = "climbing-performance-v3";
 
 interface StoreState {
   athletes: Athlete[];
   measurements: Measurement[];
   wellness: WellnessEntry[];
+  testDefinitions: TestDefinition[];
+  testResults: TestResult[];
 }
 
 interface StoreContextValue extends StoreState {
   addAthlete: (athlete: Omit<Athlete, "id" | "createdAt">) => void;
   addMeasurement: (measurement: Omit<Measurement, "id">) => void;
   addWellness: (entry: Omit<WellnessEntry, "id">) => void;
+  addTestDefinition: (test: Omit<TestDefinition, "id">) => void;
+  addTestResult: (result: Omit<TestResult, "id">) => void;
   removeAthlete: (id: string) => void;
 }
 
@@ -33,6 +49,8 @@ function demoState(): StoreState {
     athletes: demoAthletes,
     measurements: demoMeasurements,
     wellness: demoWellness,
+    testDefinitions: demoTestDefinitions,
+    testResults: demoTestResults,
   };
 }
 
@@ -46,6 +64,10 @@ function readStored(): StoreState {
         athletes: parsed.athletes,
         measurements: parsed.measurements,
         wellness: Array.isArray(parsed.wellness) ? parsed.wellness : [],
+        testDefinitions: Array.isArray(parsed.testDefinitions)
+          ? parsed.testDefinitions
+          : [],
+        testResults: Array.isArray(parsed.testResults) ? parsed.testResults : [],
       };
     }
   } catch {
@@ -121,18 +143,51 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const addTestDefinition = useCallback((test: Omit<TestDefinition, "id">) => {
+    const current = getSnapshot();
+    persist({
+      ...current,
+      testDefinitions: [...current.testDefinitions, { ...test, id: `t-${Date.now()}` }],
+    });
+  }, []);
+
+  const addTestResult = useCallback((result: Omit<TestResult, "id">) => {
+    const current = getSnapshot();
+    persist({
+      ...current,
+      testResults: [...current.testResults, { ...result, id: `r-${Date.now()}` }],
+    });
+  }, []);
+
   const removeAthlete = useCallback((id: string) => {
     const current = getSnapshot();
     persist({
       athletes: current.athletes.filter((a) => a.id !== id),
       measurements: current.measurements.filter((m) => m.athleteId !== id),
       wellness: current.wellness.filter((w) => w.athleteId !== id),
+      testResults: current.testResults.filter((r) => r.athleteId !== id),
     });
   }, []);
 
   const value = useMemo<StoreContextValue>(
-    () => ({ ...state, addAthlete, addMeasurement, addWellness, removeAthlete }),
-    [state, addAthlete, addMeasurement, addWellness, removeAthlete],
+    () => ({
+      ...state,
+      addAthlete,
+      addMeasurement,
+      addWellness,
+      addTestDefinition,
+      addTestResult,
+      removeAthlete,
+    }),
+    [
+      state,
+      addAthlete,
+      addMeasurement,
+      addWellness,
+      addTestDefinition,
+      addTestResult,
+      removeAthlete,
+    ],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

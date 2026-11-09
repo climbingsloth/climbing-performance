@@ -1,4 +1,10 @@
-import type { Athlete, Measurement, WellnessEntry } from "./types";
+import type {
+  Athlete,
+  Measurement,
+  TestDefinition,
+  TestResult,
+  WellnessEntry,
+} from "./types";
 
 export const demoAthletes: Athlete[] = [
   {
@@ -58,4 +64,19 @@ export const demoWellness: WellnessEntry[] = [
   { id: "w-3", athleteId: "ath-1", date: "2026-11-07", sleep: 9, stress: 2, motivation: 9, fatigue: 3, soreness: 1 },
   { id: "w-4", athleteId: "ath-2", date: "2026-11-06", sleep: 6, stress: 5, motivation: 6, fatigue: 6, soreness: 4 },
   { id: "w-5", athleteId: "ath-2", date: "2026-11-07", sleep: 8, stress: 3, motivation: 8, fatigue: 4, soreness: 2 },
+];
+
+export const demoTestDefinitions: TestDefinition[] = [
+  { id: "t-grip", name: "Force de préhension (dynamomètre)", unit: "kg" },
+  { id: "t-finger", name: "Force des doigts (poutre 20 mm)", unit: "kg" },
+  { id: "t-pullup", name: "Tractions lestées", unit: "kg ajoutés" },
+];
+
+export const demoTestResults: TestResult[] = [
+  { id: "r-1", athleteId: "ath-1", testId: "t-grip", date: "2026-09-15", value: 38 },
+  { id: "r-2", athleteId: "ath-1", testId: "t-grip", date: "2026-11-06", value: 41 },
+  { id: "r-3", athleteId: "ath-1", testId: "t-finger", date: "2026-09-15", value: 12 },
+  { id: "r-4", athleteId: "ath-1", testId: "t-finger", date: "2026-11-06", value: 14 },
+  { id: "r-5", athleteId: "ath-2", testId: "t-grip", date: "2026-09-18", value: 35 },
+  { id: "r-6", athleteId: "ath-2", testId: "t-grip", date: "2026-11-05", value: 36 },
 ];
